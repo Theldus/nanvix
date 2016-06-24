@@ -1,5 +1,6 @@
 /*
- * Copyright(C) 2011-2016 Pedro H. Penna <pedrohenriquepenna@gmail.com>
+ * Copyright(C) 2011-2016 Pedro H. Penna   <pedrohenriquepenna@gmail.com>
+ *              2016-2016 Davidson Francis <davidsondfgl@gmail.com>
  * 
  * This file is part of Nanvix.
  * 
@@ -33,6 +34,7 @@
 	extern void minix_mknod(struct d_inode *, const char *, uint16_t, uint16_t, uint16_t, uint16_t);
 	extern uint16_t minix_inode_dname(const char *, char *);
 	extern uint16_t minix_create(const char *, uint16_t, uint16_t, uint16_t);
+	extern size_t minix_read(uint16_t, void *, size_t);
 	extern void minix_write(uint16_t, const void *, size_t);
 	extern void minix_mkfs(const char *, uint16_t, uint16_t, uint16_t, uint16_t);
 

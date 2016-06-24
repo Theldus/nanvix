@@ -1,6 +1,7 @@
 /*
- * Copyright(C) 2011-2016 Pedro H. Penna <pedrohenriquepenna@gmail.com>
- * 
+ * Copyright(C) 2011-2016 Pedro H. Penna   <pedrohenriquepenna@gmail.com>
+ *              2016-2016 Davidson Francis <davidsondfgl@gmail.com> 
+ *
  * This file is part of Nanvix.
  * 
  * Nanvix is free software; you can redistribute it and/or modify
@@ -666,6 +667,50 @@ uint16_t minix_create
 	minix_inode_write(dnum, dip);
 	
 	return (num);
+}
+
+/**
+ * @brief Reads data from a file.
+ *
+ * @param num Inode number of the file.
+ * @param buf Buffer to be written.
+ * @param n Number of bytes to be read.
+ *
+ * @note num must refer  to a valid inode.
+ * @note buf must point to a valid buffer.
+ * @note The Minix file system must be mounted.
+ */
+size_t minix_read(uint16_t num, void *buf, size_t n)
+{
+	char *p;            /* Reading pointer.     */
+	off_t off;          /* Current file offset. */
+	struct d_inode *ip; /* File.                */
+	
+	p = buf;
+	ip = minix_inode_read(num);
+	off = 0;
+
+	/* Read data. */
+	for (size_t i = 0; i < n; /* noop */)
+	{
+		size_t blkoff;
+		size_t chunk;
+		uint16_t blk;
+
+		blk = minix_block_map(ip, off, false);
+		blkoff = off % BLOCK_SIZE;
+		chunk = ((n - i) < (BLOCK_SIZE - blkoff)) ? n - i : BLOCK_SIZE - blkoff;
+
+		/* Read data from file. */
+		slseek(fd, blk*BLOCK_SIZE + blkoff, SEEK_SET);
+		sread(fd, p, chunk);
+
+		off += chunk;
+		p += chunk;
+		i += chunk;
+	}
+
+	return ((size_t)(p - (char *)buf));
 }
 
 /**
