@@ -181,14 +181,14 @@ else
 	copy_files hdd.img
 
 	# Build initrd image.
-	dd if=/dev/zero of=initrd.img bs=1024 count=2048
-	format initrd.img 512 2048
+	dd if=/dev/zero of=initrd.img bs=1024 count=4096
+	format initrd.img 512 4096
 	copy_files initrd.img
 	initrdsize=`stat -c %s initrd.img`
 	maxsize=`grep "INITRD_SIZE" include/nanvix/config.h | cut -d" " -f 13`
 	maxsize=`printf "%d\n" $maxsize`
 	if [ $initrdsize -gt $maxsize ]; then
-		echo "NOT ENOUGH SPACE ON INITRD"
+		echo "NOT ENOUGH SPACE ON INITRD, size: $initrdsize / maxsize: $maxsize"
 		echo "INITRD SIZE is $initrdsize"
 		rm *.img
 		exit -1

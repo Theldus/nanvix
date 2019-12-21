@@ -332,7 +332,7 @@ static block_t create_direct_block(struct d_inode *ip, off_t offset, bool create
 static block_t minix_block_map(struct d_inode *ip, off_t off, bool create)
 {
 	block_t phys;                            /* Phys. blk. #.      */
-	block_t logic;                           /* Logic. blk. #.     */
+	size_t logic;                            /* Logic. blk. #.     */
 	block_t buf[BLOCK_SIZE/sizeof(block_t)]; /* Working buffer.    */
 	unsigned tmp;                            /* Logic. blk. #. tmp */
 
@@ -369,7 +369,7 @@ static block_t minix_block_map(struct d_inode *ip, off_t off, bool create)
 			off = phys*BLOCK_SIZE;
 			slseek(fd, off, SEEK_SET);
 			sread(fd, buf, BLOCK_SIZE);
-			
+
 			if ( (phys = create_indirect_block(buf,logic,off,create)) != BLOCK_NULL)
 				return (phys);
 			else
@@ -386,15 +386,16 @@ static block_t minix_block_map(struct d_inode *ip, off_t off, bool create)
 	if (tmp < NR_DOUBLE)
 	{
 		size_t logicSingle = logic / (NR_SINGLE * BLOCK_SIZE);
-		size_t logicDouble = logic / BLOCK_SIZE;
+		size_t logicDouble = (logic / BLOCK_SIZE) & (NR_SINGLE - 1);
 
 		/* Create single, double and/or direct block. */
 		if ( (phys = create_direct_block(ip,ZONE_DOUBLE,create)) != BLOCK_NULL)
 		{
 			off = phys*BLOCK_SIZE;
+
 			slseek(fd, off, SEEK_SET);
 			sread(fd, buf, BLOCK_SIZE);
-			
+
 			if ( (phys = create_indirect_block(buf,logicSingle,off,create)) 
 				!= BLOCK_NULL)
 			{
@@ -748,6 +749,50 @@ uint16_t minix_create
 }
 
 /**
+ * @brief Reads data from a file.
+ *
+ * @param num Inode number of the file.
+ * @param buf Buffer to be written.
+ * @param n Number of bytes to be read.
+ *
+ * @note num must refer  to a valid inode.
+ * @note buf must point to a valid buffer.
+ * @note The Minix file system must be mounted.
+ */
+size_t minix_read(uint16_t num, void *buf, size_t n)
+{
+	char *p;            /* Reading pointer.     */
+	off_t off;          /* Current file offset. */
+	struct d_inode *ip; /* File.                */
+
+	p = buf;
+	ip = minix_inode_read(num);
+	off = 0;
+
+	/* Read data. */
+	for (size_t i = 0; i < n; /* noop */)
+	{
+		size_t blkoff;
+		size_t chunk;
+		uint16_t blk;
+
+		blk = minix_block_map(ip, off, false);
+		blkoff = off % BLOCK_SIZE;
+		chunk = ((n - i) < (BLOCK_SIZE - blkoff)) ? n - i : BLOCK_SIZE - blkoff;
+
+		/* Read data from file. */
+		slseek(fd, blk*BLOCK_SIZE + blkoff, SEEK_SET);
+		sread(fd, p, chunk);
+
+		off += chunk;
+		p += chunk;
+		i += chunk;
+	}
+
+	return ((size_t)(p - (char *)buf));
+}
+
+/**
  * @brief Writes data to a file.
  * 
  * @param num Inode number of the file.
@@ -763,34 +808,34 @@ void minix_write(uint16_t num, const void *buf, size_t n)
 	const char *p;      /* Writing pointer.     */
 	off_t off;          /* Current file offset. */
 	struct d_inode *ip; /* File.                */
-	
+
 	p = buf;
-	
+
 	ip = minix_inode_read(num);
-	
+
 	off = ip->i_size;
-	
+
 	/* Write data. */
 	for (size_t i = 0; i < n; /* noop */)
 	{
 		size_t blkoff;
 		size_t chunk;
 		uint16_t blk;
-		
+
 		blk = minix_block_map(ip, off, true);
 		blkoff = off % BLOCK_SIZE;
 		chunk = ((n - i) < (BLOCK_SIZE - blkoff)) ? n - i : BLOCK_SIZE - blkoff;
-		
+
 		/* Write data to file. */
 		slseek(fd, blk*BLOCK_SIZE + blkoff, SEEK_SET);
 		swrite(fd, p, chunk);
-		
+
 		ip->i_size += chunk;
 		off += chunk;
 		p += chunk;
 		i += chunk;
 	}
-	
+
 	minix_inode_write(num, ip);
 }
 
