@@ -162,6 +162,7 @@ PUBLIC int inode_read_minix(dev_t dev, ino_t num, struct inode *ip)
 	return (0);
 
 error1:
+	brelse(buf);
 	superblock_put(sb);
 error0:
 	return (1);
