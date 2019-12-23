@@ -42,6 +42,37 @@
 #ifndef _REENT_ONLY
 
 /**
+ * @brief Renames a file.
+ *
+ * Looks like the syscall rename deletes the target
+ * file if it already exists. As far as I understood
+ * this 'hurts' the default behaviour of the classic
+ * implementation that do 'link/unlink', since if the
+ * new file already exists, link will failt.
+ *
+ * Therefore, this function deals with this case, ;-).
+ */
+int _rename(const char *old, const char *new)
+{
+	/* Target must exist. */
+	if (access(old, F_OK) == -1)
+		return (-1);
+
+	/* If destination exists, lets remove it. */
+	if (access(new, F_OK) != -1)
+		if (unlink(new) == -1)
+			return (-1);
+
+	/* Lets 'rename' properly. */
+	if (link(old, new) == -1)
+    	return (-1);
+	if (unlink(old) == -1)
+		return (-1);
+
+	return (0);
+}
+
+/**
  * @brief Renames file.
  *
  * @details Changes the name of a file. The @p old

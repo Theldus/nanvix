@@ -83,6 +83,8 @@
 #undef errno
 extern int errno;
 
+#define HAVE_RENAME 1
+
 /*
 FUNCTION
 	<<_rename_r>>---Reentrant version of rename
