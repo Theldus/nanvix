@@ -78,7 +78,15 @@
 	#define __need_NULL
 	#include <stddef.h>
 
+	/*
+	 * GCC tends to use its own stdarg when using
+	 * the cross compiler. For some reason, if
+	 * defined __need___va_list, GCC does not
+	 * export it... bug?
+	 */
+#ifndef __nanvix__
 	#define __need___va_list
+#endif
 	#include <stdarg.h>
 
 	#include <sys/_types.h>
