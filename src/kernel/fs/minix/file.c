@@ -73,8 +73,12 @@ PUBLIC int dir_remove_minix(struct inode *dinode, const char *filename)
 			return (-EPERM);
 		}
 		
-		/* Directory not empty. */
-		if (dinode->size)
+		/*
+		 * Directory not empty, i.e: if the number
+		 * of entries is greater than 2 ([.], [..], others)
+		 * the folder is not empty.
+		 */
+		if ((file->size/sizeof(struct d_dirent)) > 2)
 		{
 			inode_put(file);
 			brelse(buf);
