@@ -421,6 +421,15 @@ PRIVATE int readpg(struct region *reg, addr_t addr)
 	/* Assign a user page. */
 	if (allocupg(addr, reg->mode & MAY_WRITE))
 		return (-1);
+		
+	/* If DATA. */
+	if (reg->preg == DATA(curr_proc))
+	{
+		/* If BSS, we do not need to fill from a file. */
+		if (addr >= reg->bss.start &&
+			addr < reg->bss.start + reg->bss.size)
+			return (0);
+	}
 	
 	/* Find page table entry. */
 	pg = getpte(curr_proc, addr);

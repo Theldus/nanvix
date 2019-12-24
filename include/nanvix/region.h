@@ -80,6 +80,37 @@
 			size_t size;           /* Size.   */
 		} file;
 		
+		/* 
+		 * BSS Section. 
+		 *
+		 * In Nanvix, all programs can be split into 3 and only 3
+		 * sections: text, data and heap. Furthermore, Nanvix
+		 * does not provided a per-type region, like region_text,
+		 * region_data and region_heap.
+		 *
+		 * Besides that, it was proven that being able to distinguish
+		 * between .data and .bss it's importat, since sometimes
+		 * the compiler or tools (aka 'strip') will produce trash
+		 * data inside the BSS section even when not wanted and
+		 * when the bss is alongside with .data section.
+		 *
+		 * Taking this into account, I will (by now) put the BSS
+		 * 'subregion' inside the region structure. (If text/heap,
+		 * the bss structure do not have any meanings and should not
+		 * be used).
+		 *
+		 * Its important to note that data regions which contains BSS
+		 * will still be marked as demand fill and demand fill/zero
+		 * will be handled case by case accordingly with the faulting
+		 * address, i.e: if belongs to bss or not.
+		 */
+		struct
+		{
+			addr_t start; /* Start of BSS Section. */
+			off_t off;    /* File offset.          */
+			size_t size;  /* BSS Section size.     */
+		} bss;
+		
 		/* Access information. */
 		mode_t mode; /* Access permissions.      */
 		uid_t cuid;  /* Creator's user ID.       */

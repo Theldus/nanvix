@@ -435,6 +435,11 @@ found:
 	reg->gid = curr_proc->gid;
 	for (int i = 0; i < MREGIONS; i++)
 		reg->mtab[i] = NULL;
+		
+	/* Clear BSS 'subsection'. */
+	reg->bss.start = 0;
+	reg->bss.off = 0;
+	reg->bss.size = 0;
 	
 	/* Expand region. */
 	if (expand(NULL, reg, size))

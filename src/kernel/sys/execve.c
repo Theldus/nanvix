@@ -41,6 +41,86 @@ PRIVATE int is_elf(struct elf32_fhdr *header)
 }
 
 /*
+ * For a given file inode, looks into ELF section header
+ * and tries to find the corresponding BSS section.
+ *
+ * Datas like sh_addr, sh_offset... will be used in the
+ * region data when vfault in BSS sections occur.
+ */
+PRIVATE void find_bss(
+	struct inode *inode, off_t shdr_off,
+	size_t shdr_num, size_t shdr_size
+)
+{
+	struct pregion *preg;   /* Working process memory region. */
+	struct elf32_shdr *sec; /* ELF Section header.            */
+	char *buf;              /* Buffer.                        */
+	size_t i;               /* Loop index.                    */
+
+	/* Allocate a kernel page to hold the section headers. */
+	if ((buf = getkpg(1)) == NULL)
+		goto error0;
+
+	shdr_size *= shdr_num;
+	shdr_size = (shdr_size < PAGE_SIZE) ? shdr_size : PAGE_SIZE;
+
+	/* 
+	 * Read the section header from file.
+	 *
+	 * Since @p inode comes locked, we need to temporarily unlock
+	 * to proceed, otherwise, file_read will hangup forever.
+	 */
+	inode_unlock(inode);
+
+		if (file_read(inode, buf, shdr_size, shdr_off) != (ssize_t)shdr_size)
+			goto error1;
+
+	inode_lock(inode);
+
+	sec = (struct elf32_shdr *)buf;
+
+	/* Load sections. */
+	for (i = 0; i < shdr_num; i++)
+	{
+		/* Only interested in BSS. */
+		if (sec[i].sh_type != SHT_NOBITS)
+			continue;
+
+		/* BSS should be 'WA'. */
+		if (!(sec[i].sh_flags & (SHF_WRITE | SHF_ALLOC)))
+			continue;
+
+		/*
+		 * Saves the gathered data into the current
+		 * (already allocated) data region.
+		 */
+		preg = DATA(curr_proc);
+		preg->reg->bss.start = sec[i].sh_addr;
+		preg->reg->bss.off   = sec[i].sh_offset;
+		preg->reg->bss.size  = sec[i].sh_size;
+		break;
+	}
+
+	/* If not found, fill with zeroed data. */
+	if (i == shdr_num)
+	{
+		preg = DATA(curr_proc);
+		preg->reg->bss.start = 0;
+		preg->reg->bss.off   = 0;
+		preg->reg->bss.size  = 0;
+	}
+
+	putkpg(buf);
+	return;
+
+error1:
+	putkpg(buf);
+	inode_lock(inode);
+error0:
+	return;
+}
+
+/*
  * Loads an ELF 32 executable.
  */
 PRIVATE addr_t load_elf32(struct inode *inode)
@@ -54,6 +134,9 @@ PRIVATE addr_t load_elf32(struct inode *inode)
 	buffer_t header;        /* File headers block buffer.     */
 	struct region *reg;     /* Working memory region.         */
 	struct pregion *preg;   /* Working process memory region. */
+	off_t shdr_off;         /* Section header offset.         */
+	size_t shdr_num;        /* Section header amount.         */
+	size_t shdr_size;       /* Section header size.           */
 	
 	blk = block_map(inode, 0, 0);
 	
@@ -67,6 +150,11 @@ PRIVATE addr_t load_elf32(struct inode *inode)
 	/* Read ELF file header. */
 	header = bread(inode->dev, blk);
 	elf = buffer_data(header);
+
+	/* Section header infos. */
+	shdr_off = elf->e_shoff;
+	shdr_num = elf->e_shnum;
+	shdr_size = elf->e_shentsize;
 	
 	/* Bad ELF file. */
 	if (!is_elf(elf))
@@ -143,6 +231,22 @@ PRIVATE addr_t load_elf32(struct inode *inode)
 	
 	brelse(header);
 	
+	/*
+	 * The utility 'strip' seems to mess the .bss section and fill it
+	 * with junk bytes, even when the .bss was built together with data.
+	 *
+	 * Therefore, we need a way to get around with it by also checking
+	 * the section header and trying to find the BSS. This way, when
+	 * a vfault() inside a data region occurs, we can check if address
+	 * belongs to a bss section and them clear the page, instead of
+	 * reading from the file.
+	 *
+	 * @note: Since this an attempt to work around the strip 'issue',
+	 * errors will not abort the execve() execution and Nanvix will
+	 * try to proceed anyway.
+	 */
+	find_bss(inode, shdr_off, shdr_num, shdr_size);
+
 	return (entry);
 
 error0:
