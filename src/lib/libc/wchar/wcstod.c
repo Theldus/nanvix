@@ -140,7 +140,7 @@ float _wcstof_r(struct _reent *ptr, const wchar_t *nptr, wchar_t **endptr)
  * @return Returns the converted value. If no conversion could be performed,
  * 0 shall be returned.
  */
-double wcstod(const wchar_t *restrict nptr, wchar_t **restrict endptr)
+double wcstod(const wchar_t * nptr, wchar_t ** endptr)
 {
   return _wcstod_r (_REENT, nptr, endptr);
 }
@@ -154,7 +154,7 @@ double wcstod(const wchar_t *restrict nptr, wchar_t **restrict endptr)
  * @return Returns the converted value. If no conversion could be performed,
  * 0 shall be returned.
  */
-float wcstof(const wchar_t *restrict nptr, wchar_t **restrict endptr)
+float wcstof(const wchar_t * nptr, wchar_t ** endptr)
 {
   double retval = _wcstod_r (_REENT, nptr, endptr);
   if (isnan (retval))

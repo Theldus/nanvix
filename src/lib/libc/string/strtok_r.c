@@ -116,8 +116,8 @@ cont:
  * @return Returns a pointer to the token found, or a null pointer when
  * no token is found.
  */
-char *strtok_r(register char *restrict s, register const char *restrict delim,
-	char **restrict lasts)
+char *strtok_r(register char * s, register const char * delim,
+	char ** lasts)
 {
 	return __strtok_r (s, delim, lasts, 1);
 }

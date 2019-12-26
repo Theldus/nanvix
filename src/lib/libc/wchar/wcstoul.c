@@ -132,7 +132,7 @@ unsigned long _wcstoul_r(struct _reent *rptr, const wchar_t *nptr,
  * @return Returns the converted value. If no conversion could be performed,
  * 0 is returned.
  */
-unsigned long wcstoul(const wchar_t *restrict s, wchar_t **restrict ptr,
+unsigned long wcstoul(const wchar_t * s, wchar_t ** ptr,
 	int base)
 {
 	return _wcstoul_r (_REENT, s, ptr, base);

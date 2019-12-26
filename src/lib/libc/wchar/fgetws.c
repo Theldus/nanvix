@@ -130,7 +130,7 @@ error:
  *
  * @return Returns ws.
  */
-wchar_t * fgetws(wchar_t *restrict ws, int n, FILE *restrict fp)
+wchar_t * fgetws(wchar_t * ws, int n, FILE * fp)
 {
   struct _reent *reent = _REENT;
 

@@ -123,7 +123,7 @@ error:
  * set an error indicator for the stream, and set errno to indicate
  * the error. 
  */
-int fputws(const wchar_t *restrict ws, FILE *restrict fp)
+int fputws(const wchar_t * ws, FILE * fp)
 {
   struct _reent *reent = _REENT;
 

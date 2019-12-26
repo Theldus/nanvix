@@ -41,8 +41,8 @@
 #include <stdarg.h>
 #include "local.h"
 
-int _sscanf_r(struct _reent *ptr, const char *restrict str,
-	const char *restrict fmt, ...)
+int _sscanf_r(struct _reent *ptr, const char * str,
+	const char * fmt, ...)
 {
   int ret;
   va_list ap;
@@ -78,7 +78,7 @@ int _sscanf_r(struct _reent *ptr, const char *restrict str,
  * EOF is also returned if a read error occurs, in which case the error
  * indicator for the stream is set, and errno is set indicate the error.
  */
-int sscanf(const char *restrict str, const char * fmt, ...)
+int sscanf(const char * str, const char * fmt, ...)
 {
   int ret;
   va_list ap;

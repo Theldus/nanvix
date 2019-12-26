@@ -184,53 +184,53 @@
 	extern int ferror(FILE *);
 	extern int fflush(FILE *);
 	extern int fgetc(FILE *);
-	extern int fgetpos(FILE *restrict, fpos_t *restrict);
-	extern char *fgets(char *restrict, int, FILE *restrict);
-	extern FILE *fopen(const char *restrict, const char *restrict);
-	extern int fprintf(FILE *restrict, const char *restrict, ...);
+	extern int fgetpos(FILE *, fpos_t *);
+	extern char *fgets(char *, int, FILE *);
+	extern FILE *fopen(const char *, const char *);
+	extern int fprintf(FILE *, const char *, ...);
 	extern int fputc(int, FILE *);
-	extern int fputs(const char *restrict, FILE *restrict);
-	extern size_t fread(void *restrict, size_t, size_t, FILE *restrict);
-	extern FILE *freopen(const char *restrict, const char *restrict,
-		FILE *restrict);
-	extern int fscanf(FILE *restrict, const char *restrict, ...);
+	extern int fputs(const char *, FILE *);
+	extern size_t fread(void *, size_t, size_t, FILE *);
+	extern FILE *freopen(const char *, const char *,
+		FILE *);
+	extern int fscanf(FILE *, const char *, ...);
 	extern int fseek(FILE *, long, int);
 	extern int fsetpos(FILE *, const fpos_t *);
 	extern long ftell(FILE *);
-	extern size_t fwrite(const void *restrict, size_t, size_t, FILE *restrict);
+	extern size_t fwrite(const void *, size_t, size_t, FILE *);
 	extern int getc(FILE *);
 	extern int getchar(void);
 	extern void perror(const char *);
-	extern int printf(const char *restrict, ...);
+	extern int printf(const char *, ...);
 	extern int putc(int, FILE *);
 	extern int putchar(int);
 	extern int puts(const char *);
 	extern int remove(const char *);
 	extern int rename(const char *, const char *);
 	extern void rewind(FILE *);
-	extern int scanf(const char *restrict, ...);
-	extern void setbuf(FILE *restrict, char *restrict);
-	extern int setvbuf(FILE *restrict, char *restrict, int, size_t);
-	extern int snprintf(char *restrict, size_t, const char *restrict, ...);
-	extern int sprintf(char *restrict, const char *restrict, ...);
-	extern int sscanf(const char *restrict, const char *restrict, ...);
+	extern int scanf(const char *, ...);
+	extern void setbuf(FILE *, char *);
+	extern int setvbuf(FILE *, char *, int, size_t);
+	extern int snprintf(char *, size_t, const char *, ...);
+	extern int sprintf(char *, const char *, ...);
+	extern int sscanf(const char *, const char *, ...);
 	extern FILE *tmpfile(void);
 	extern int ungetc(int, FILE *);
-	extern int vfprintf(FILE *restrict, const char *restrict, va_list);
-	extern int vfscanf(FILE *restrict, const char *restrict, va_list);
-	extern int vprintf(const char *restrict, va_list);
-	extern int vscanf(const char *restrict, va_list);
-	extern int vsnprintf(char *restrict, size_t, const char *restrict, va_list);
-	extern int vsprintf(char *restrict, const char *restrict, va_list);
-	extern int vsscanf(const char *restrict, const char *restrict, va_list);
+	extern int vfprintf(FILE *, const char *, va_list);
+	extern int vfscanf(FILE *, const char *, va_list);
+	extern int vprintf(const char *, va_list);
+	extern int vscanf(const char *, va_list);
+	extern int vsnprintf(char *, size_t, const char *, va_list);
+	extern int vsprintf(char *, const char *, va_list);
+	extern int vsscanf(const char *, const char *, va_list);
 
 #if defined(_POSIX_C_SOURCE) || defined(_XOPEN_SOURCE)
 
-	extern int dprintf(int, const char *restrict, ...);
+	extern int dprintf(int, const char *, ...);
 	extern FILE *fdopen(int, const char *);
 	extern int fileno(FILE *);
 	extern void flockfile(FILE *);
-	extern FILE *fmemopen(void *restrict, size_t, const char *restrict);
+	extern FILE *fmemopen(void *, size_t, const char *);
 	extern int fseeko(FILE *, off_t, int);
 	extern off_t ftello(FILE *);
 	extern int ftrylockfile(FILE *);
@@ -240,7 +240,7 @@
 	extern FILE *open_memstream(char **, size_t *);
 	extern int putc_unlocked(int, FILE *);
 	extern int putchar_unlocked(int);
-	extern int vdprintf(int, const char *restrict, va_list);
+	extern int vdprintf(int, const char *, va_list);
 
 #endif
 
@@ -251,8 +251,8 @@
 	extern FILE *_fdopen_r(struct _reent *, int, const char *);
 	extern int _fflush_r(struct _reent *, FILE *);
 	extern int _fputc_r(struct _reent *, int, FILE *);
-	extern size_t _fread_r(struct _reent *, void *restrict, size_t _size,
-		size_t _n, FILE *restrict);
+	extern size_t _fread_r(struct _reent *, void *, size_t _size,
+		size_t _n, FILE *);
 	extern int _fseek_r(struct _reent *, FILE *, long, int);
 	extern int _fseeko_r(struct _reent *, FILE *, _off_t, int);
 	extern long _ftell_r(struct _reent *, FILE *);
@@ -262,17 +262,17 @@
 	extern int _putc_r(struct _reent *, int, FILE *);
 	extern int _rename(const char *, const char *);
 	extern int _remove_r(struct _reent *, const char *);	
-	extern int _sprintf_r(struct _reent *, char *restrict, const char *restrict,
+	extern int _sprintf_r(struct _reent *, char *, const char *,
 		...);
 	extern char *_tmpnam_r(struct _reent *, char *);
 	extern int _ungetc_r(struct _reent *, int, FILE *);
 	extern char *_vasnprintf_r(struct _reent*, char *, size_t *, const char *,
 		va_list);
-	extern int _vdprintf_r(struct _reent *, int, const char *restrict, va_list);
+	extern int _vdprintf_r(struct _reent *, int, const char *, va_list);
 	extern int _vfiprintf_r(struct _reent *, FILE *, const char *, va_list);
-	extern int _vfprintf_r(struct _reent *, FILE *restrict, const char *restrict,
+	extern int _vfprintf_r(struct _reent *, FILE *, const char *,
 		va_list);
-	extern int _vfscanf_r(struct _reent *, FILE *restrict, const char *restrict,
+	extern int _vfscanf_r(struct _reent *, FILE *, const char *,
 		va_list);
 	extern int fiprintf(FILE *, const char *, ...);
 	extern int siprintf(char *, const char *, ...);

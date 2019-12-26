@@ -61,7 +61,7 @@ extern long double _strtold (const char *, char **);
  * @return Returns the converted value. If no conversion
  * could be performed, 0 is returned.
  */
-long double strtold(const char *restrict s00, char **restrict se)
+long double strtold(const char * s00, char ** se)
 {
 #ifdef _LDBL_EQ_DBL
   return strtod(s00, se);

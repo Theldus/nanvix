@@ -58,7 +58,7 @@
  * to indicate the error. If a read error occurs, the error indicator
  * for the stream is set.
  */
-int fwscanf(FILE *restrict fp, const wchar_t *restrict fmt, ...)
+int fwscanf(FILE * fp, const wchar_t * fmt, ...)
 {
   int ret;
   va_list ap;

@@ -47,7 +47,7 @@
  * setvbuf(stream, buf, _IONBF, BUFSIZ)
  * if @p fp is a null pointer.
  */
-void setbuf(FILE *restrict fp, char *restrict buf)
+void setbuf(FILE * fp, char * buf)
 {
   (void) setvbuf (fp, buf, buf ? _IOFBF : _IONBF, BUFSIZ);
 }

@@ -50,8 +50,8 @@ static char sccsid[] = "%W% (Berkeley) %G%";
 
 #ifndef _REENT_ONLY
 
-int _vsnprintf_r(struct _reent *ptr, char *restrict str, size_t size,
-  const char *restrict fmt, va_list ap)
+int _vsnprintf_r(struct _reent *ptr, char * str, size_t size,
+  const char * fmt, va_list ap)
 {
   int ret;
   FILE f;
@@ -82,7 +82,7 @@ int _vsnprintf_r(struct _reent *ptr, char *restrict str, size_t size,
  *
  * @return Same snprintf return.
  */
-int vsnprintf(char *restrict str, size_t size, const char *restrict fmt,
+int vsnprintf(char * str, size_t size, const char * fmt,
   va_list ap)
 {
   return _vsnprintf_r (_REENT, str, size, fmt, ap);

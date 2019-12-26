@@ -59,7 +59,7 @@ POSSIBILITY OF SUCH DAMAGE.
  * @return Returns the converted value. If no conversion could be performed,
  * 0 is returned.
  */
-long double wcstold(const wchar_t *restrict nptr, wchar_t **restrict endptr)
+long double wcstold(const wchar_t * nptr, wchar_t ** endptr)
 {
   return wcstod(nptr, endptr);
 }

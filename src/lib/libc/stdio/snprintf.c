@@ -44,8 +44,8 @@
 #include <errno.h>
 #include "local.h"
 
-int _snprintf_r(struct _reent *ptr, char *restrict str, size_t size,
-  const char *restrict fmt, ...)
+int _snprintf_r(struct _reent *ptr, char * str, size_t size,
+  const char * fmt, ...)
 {
   int ret;
   va_list ap;
@@ -87,7 +87,7 @@ int _snprintf_r(struct _reent *ptr, char *restrict str, size_t size,
  * @return Returns number of bytes that would be written to @p str had @p size
  * been sufficiently large excluding the terminating null byte.
  */
-int snprintf(char *restrict str, size_t size, const char *restrict fmt, ...)
+int snprintf(char * str, size_t size, const char * fmt, ...)
 {
   int ret;
   va_list ap;

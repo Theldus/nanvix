@@ -89,8 +89,8 @@ size_t _wcsrtombs_r(struct _reent *r, char *dst, const wchar_t **src,
  * Otherwise, the function returns the number of bytes in the
  * resulting character sequence, not including the terminating null (if any).
  */
-size_t wcsrtombs(char *restrict dst, const wchar_t **restrict src, size_t len,
-	mbstate_t *restrict ps)
+size_t wcsrtombs(char * dst, const wchar_t ** src, size_t len,
+	mbstate_t * ps)
 {
   return _wcsnrtombs_r (_REENT, dst, src, (size_t) -1, len, ps);
 }

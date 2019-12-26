@@ -57,7 +57,7 @@
  * has completed, and without a matching failure having occurred, EOF is 
  * returned.
  */
-int wscanf(const wchar_t *restrict fmt, ...)
+int wscanf(const wchar_t * fmt, ...)
 {
   int ret;
   va_list ap;

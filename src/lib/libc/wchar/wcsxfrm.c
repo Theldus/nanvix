@@ -74,7 +74,7 @@
  * @return Returns the length of the transformed wide-character
  * string (not including the terminating null wide-character code).
  */
-size_t wcsxfrm(wchar_t *restrict a, const wchar_t *restrict b, size_t n)
+size_t wcsxfrm(wchar_t * a, const wchar_t * b, size_t n)
 {
   return wcslcpy (a, b, n);
 }

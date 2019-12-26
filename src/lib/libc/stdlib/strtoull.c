@@ -68,7 +68,7 @@
  * @return Returns the converted value. If no conversion
  * could be performed, 0 is returned.
  */
-unsigned long long strtoull(const char *restrict s, char **restrict ptr,
+unsigned long long strtoull(const char * s, char ** ptr,
     int base)
 {
 	return _strtoull_r (_REENT, s, ptr, base);

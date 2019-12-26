@@ -84,7 +84,7 @@
  * (if the next @p n or fewer bytes form a valid character), or returns
  * -1 (if they do not form a valid character).
  */
-int mbtowc(wchar_t *restrict pwc, const char *restrict s, size_t n)
+int mbtowc(wchar_t * pwc, const char * s, size_t n)
 {
 #ifdef _MB_CAPABLE
   int retval = 0;

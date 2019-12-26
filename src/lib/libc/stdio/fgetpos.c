@@ -38,7 +38,7 @@
 #include <reent.h>
 #include <stdio.h>
 
-int _fgetpos_r(struct _reent * ptr, FILE *restrict fp, _fpos_t *restrict pos)
+int _fgetpos_r(struct _reent * ptr, FILE * fp, _fpos_t * pos)
 {
   *pos = _ftell_r (ptr, fp);
 
@@ -64,7 +64,7 @@ int _fgetpos_r(struct _reent * ptr, FILE *restrict fp, _fpos_t *restrict pos)
  * @return Returns 0; otherwise, returns a non-zero value and
  * sets errno to indicate the error.
  */
-int fgetpos(FILE *restrict fp, _fpos_t *restrict pos)
+int fgetpos(FILE * fp, _fpos_t * pos)
 {
   return _fgetpos_r (_REENT, fp, pos);
 }

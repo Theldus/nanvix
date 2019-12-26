@@ -80,7 +80,7 @@
  * It returns (size_t)-2 if it couldn't parse a complete multibyte character,
  * meaning that @p n should be increased.
  */
-size_t mbrlen(const char *restrict s, size_t n, mbstate_t *restrict ps)
+size_t mbrlen(const char * s, size_t n, mbstate_t * ps)
 {
 #ifdef _MB_CAPABLE
   if (ps == NULL)

@@ -84,7 +84,7 @@
  *
  * @return Returns @p dst0.
  */
-void *memcpy(void *restrict dst0, const void *restrict src0, size_t len0)
+void *memcpy(void * dst0, const void * src0, size_t len0)
 {
 #if defined(PREFER_SIZE_OVER_SPEED) || defined(__OPTIMIZE_SIZE__)
   char *dst = (char *) dst0;

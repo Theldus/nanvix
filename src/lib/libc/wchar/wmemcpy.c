@@ -59,7 +59,7 @@
  *
  * @return Returns the value of @p d.
  */
-wchar_t *wmemcpy(wchar_t *restrict d, const wchar_t *restrict s, size_t n)
+wchar_t *wmemcpy(wchar_t * d, const wchar_t * s, size_t n)
 {
   return (wchar_t *) memcpy (d, s, n * sizeof (wchar_t));
 }

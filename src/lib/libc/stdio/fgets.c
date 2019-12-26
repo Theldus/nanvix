@@ -50,8 +50,8 @@
  * Return first argument, or NULL if no characters were read.
  */
 
-char *_fgets_r(struct _reent * ptr, char *restrict buf, int n,
-	FILE *restrict fp)
+char *_fgets_r(struct _reent * ptr, char * buf, int n,
+	FILE * fp)
 {
   size_t len;
   char *s;
@@ -159,7 +159,7 @@ char *_fgets_r(struct _reent * ptr, char *restrict buf, int n,
  * indicator for the stream is set, fgets() returns a null pointer,
  * and sets errno to indicate the error.
  */
-char *fgets(char *restrict buf, int n, FILE *restrict fp)
+char *fgets(char * buf, int n, FILE * fp)
 {
   return _fgets_r (_REENT, buf, n, fp);
 }

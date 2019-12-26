@@ -101,7 +101,7 @@
  * in @p dst0, or a null pointer if @p endchar0 was not found in the
  * first @p len0 bytes of @p src0.
  */
-void *memccpy(void *restrict dst0, const void* restrict src0, int endchar0, 
+void *memccpy(void * dst0, const void* src0, int endchar0, 
   size_t len0)
 {
 

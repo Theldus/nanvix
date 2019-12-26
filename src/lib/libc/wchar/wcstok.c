@@ -62,8 +62,8 @@
  * @return Returns a pointer to the first wide-character code of a token. 
  * Otherwise, if there is no token, returns a null pointer.
  */
-wchar_t *wcstok(register wchar_t *restrict s, register const wchar_t *restrict delim,
-	wchar_t **restrict lasts)
+wchar_t *wcstok(register wchar_t * s, register const wchar_t * delim,
+	wchar_t ** lasts)
 {
 	register const wchar_t *spanp;
 	register int c, sc;

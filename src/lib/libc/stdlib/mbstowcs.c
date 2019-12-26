@@ -79,7 +79,7 @@
  * Otherwise, the function returns the number of the array elements
  * modified not including a terminating 0 code, if any.
  */
-size_t mbstowcs(wchar_t *restrict pwcs, const char *restrict s, size_t n)
+size_t mbstowcs(wchar_t * pwcs, const char * s, size_t n)
 {
 #ifdef _MB_CAPABLE
   mbstate_t state;

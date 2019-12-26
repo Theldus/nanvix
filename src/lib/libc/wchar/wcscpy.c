@@ -59,7 +59,7 @@
  * @return Returns a pointer to the terminating null wide-character code copied 
  * into the @p s1 buffer.
  */
-wchar_t * wcscpy(wchar_t *restrict s1, const wchar_t *restrict s2)
+wchar_t * wcscpy(wchar_t * s1, const wchar_t * s2)
 {
   wchar_t *p;
   _CONST wchar_t *q;

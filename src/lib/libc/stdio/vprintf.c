@@ -41,7 +41,7 @@
 #include <stdarg.h>
 #include "local.h"
 
-int _vprintf_r(struct _reent *ptr, const char *restrict fmt, va_list ap)
+int _vprintf_r(struct _reent *ptr, const char * fmt, va_list ap)
 {
   _REENT_SMALL_CHECK_INIT (ptr);
   return _vfprintf_r (ptr, _stdout_r (ptr), fmt, ap);

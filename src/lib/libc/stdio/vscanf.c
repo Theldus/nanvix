@@ -42,7 +42,7 @@
 #include <stdarg.h>
 #include "local.h"
 
-int _vscanf_r(struct _reent *ptr, const char *restrict fmt, va_list ap)
+int _vscanf_r(struct _reent *ptr, const char * fmt, va_list ap)
 {
   _REENT_SMALL_CHECK_INIT (ptr);
   return __svfscanf_r (ptr, _stdin_r (ptr), fmt, ap);

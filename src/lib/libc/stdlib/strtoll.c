@@ -69,7 +69,7 @@
  * @return Returns the converted value. If no conversion
  * could be performed, 0 is returned.
  */
-long long strtoll(const char *restrict s, char **restrict ptr, int base)
+long long strtoll(const char * s, char ** ptr, int base)
 {
 	return _strtoll_r (_REENT, s, ptr, base);
 }

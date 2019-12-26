@@ -59,8 +59,8 @@ static char sccsid[] = "%W% (Berkeley) %G%";
  * Return the number of whole objects written.
  */
 
-size_t _fwrite_r(struct _reent *ptr, const void *restrict buf, size_t size,
-  size_t count, FILE *restrict fp)
+size_t _fwrite_r(struct _reent *ptr, const void * buf, size_t size,
+  size_t count, FILE * fp)
 {
   size_t n;
 #ifdef _FVWRITE_IN_STREAMIO
@@ -131,7 +131,7 @@ ret:
  * the error indicator for the stream is set, and errno is set to
  * indicate the error.
  */
-size_t fwrite(const void *restrict buf, size_t size, size_t count, FILE *fp)
+size_t fwrite(const void * buf, size_t size, size_t count, FILE *fp)
 {
   return _fwrite_r (_REENT, buf, size, count, fp);
 }

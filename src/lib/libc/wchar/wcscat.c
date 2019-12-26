@@ -62,7 +62,7 @@
  *
  * @return Returns @p s1.
  */
-wchar_t *wcscat(wchar_t *restrict s1, const wchar_t *restrict s2)
+wchar_t *wcscat(wchar_t * s1, const wchar_t * s2)
 {
   wchar_t *p;
   wchar_t *q;

@@ -125,7 +125,7 @@ size_t _wcrtomb_r(struct _reent *ptr, char *s, wchar_t wc, mbstate_t *ps)
  * the byte array at @p s. If @p wc can not be represented as a multibyte sequence
  * (according to the current locale), (size_t)-1 is returned, and errno set to EILSEQ.
  */
-size_t wcrtomb(char *restrict s, wchar_t wc, mbstate_t *restrict ps)
+size_t wcrtomb(char * s, wchar_t wc, mbstate_t * ps)
 {
 #if defined(PREFER_SIZE_OVER_SPEED) || defined(__OPTIMIZE_SIZE__)
   return _wcrtomb_r (_REENT, s, wc, ps);

@@ -90,8 +90,8 @@ static size_t crlf_r(struct _reent *ptr, FILE *fp, char *buf, size_t count,
 
 #endif
 
-size_t _fread_r(struct _reent *ptr, void *restrict buf, size_t size,
-	size_t count, FILE *restrict fp)
+size_t _fread_r(struct _reent *ptr, void * buf, size_t size,
+	size_t count, FILE * fp)
 {
   register size_t resid;
   register char *p;
@@ -218,7 +218,7 @@ size_t _fread_r(struct _reent *ptr, void *restrict buf, size_t size,
  * unchanged. Otherwise, if a read error occurs, the error indicator
  * for the stream is set, and errno is set to indicate the error.
  */
-size_t fread(void *restrict buf, size_t size, size_t count, FILE *restrict fp)
+size_t fread(void * buf, size_t size, size_t count, FILE * fp)
 {
    return _fread_r (_REENT, buf, size, count, fp);
 }

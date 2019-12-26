@@ -31,7 +31,7 @@
 
 #if defined(_POSIX_C_SOURCE) || defined(_XOPEN_SOURCE)
 
-int _dprintf_r(struct _reent *ptr, int fd, const char *restrict format, ...)
+int _dprintf_r(struct _reent *ptr, int fd, const char * format, ...)
 {
 	va_list ap;
 	int n;
@@ -52,7 +52,7 @@ int _dprintf_r(struct _reent *ptr, int fd, const char *restrict format, ...)
  *
  * @return Returns the number of bytes transmitted.
  */
-int dprintf(int fd, const char *restrict format, ...)
+int dprintf(int fd, const char * format, ...)
 {
   va_list ap;
   int n;

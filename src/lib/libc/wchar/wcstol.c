@@ -153,7 +153,7 @@ long _wcstol_r(struct _reent *rptr, const wchar_t *nptr, wchar_t **endptr,
  * @return Returns the converted value, if any. If no conversion
  * could be performed, 0 is returned.
  */
-long wcstol(const wchar_t *restrict s, wchar_t **restrict ptr, int base)
+long wcstol(const wchar_t * s, wchar_t ** ptr, int base)
 {
 	return _wcstol_r (_REENT, s, ptr, base);
 }

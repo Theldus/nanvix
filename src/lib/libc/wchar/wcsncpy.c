@@ -75,7 +75,7 @@
  * the function returns the address of the first such null wide-character code.
  * Otherwise, it returns @p &s1[n].
  */
-wchar_t *wcsncpy(wchar_t *restrict s1, const wchar_t *restrict s2, size_t n)
+wchar_t *wcsncpy(wchar_t * s1, const wchar_t * s2, size_t n)
 {
   wchar_t *dscan=s1;
 

@@ -163,22 +163,22 @@
 	extern lldiv_t lldiv(long long, long long);
 	extern void *malloc(size_t);
 	extern int mblen(const char *, size_t);
-	extern size_t mbstowcs(wchar_t *restrict, const char *restrict, size_t);
-	extern int mbtowc(wchar_t *restrict, const char *restrict, size_t);
+	extern size_t mbstowcs(wchar_t *, const char *, size_t);
+	extern int mbtowc(wchar_t *, const char *, size_t);
 	extern void qsort(void *, size_t, size_t, 
 		int (*)(const void *, const void *));
 	extern int rand(void);
 	extern void *realloc(void *, size_t);
 	extern void srand(unsigned);
-	extern double strtod(const char *restrict, char **restrict);
-	extern float strtof(const char *restrict, char **restrict);
-	extern long strtol(const char *restrict, char **restrict, int);
-	extern long double strtold(const char *restrict, char **restrict);
-	extern long long strtoll(const char *restrict, char **restrict, int);
-	extern unsigned long strtoul(const char *restrict, char **restrict, int);
-	extern unsigned long long strtoull(const char *restrict, char **restrict, int);
+	extern double strtod(const char *, char **);
+	extern float strtof(const char *, char **);
+	extern long strtol(const char *, char **, int);
+	extern long double strtold(const char *, char **);
+	extern long long strtoll(const char *, char **, int);
+	extern unsigned long strtoul(const char *, char **, int);
+	extern unsigned long long strtoull(const char *, char **, int);
 	extern int system(const char *);
-	extern size_t wcstombs(char *restrict, const wchar_t *restrict, size_t);
+	extern size_t wcstombs(char *, const wchar_t *, size_t);
 	extern int wctomb(char *, wchar_t);
 
 #if defined(_POSIX_C_SOURCE) || defined(_XOPEN_SOURCE)
@@ -208,19 +208,19 @@
 	extern char *_dtoa_r(struct _reent *, double, int, int, int *, int *, char **);
 	extern char *_findenv_r(struct _reent *, const char *, int *);
 	extern char *_getenv_r(struct _reent *, const char *);
-	extern double _strtod_r(struct _reent *, const char *restrict, 
-		char **restrict);
+	extern double _strtod_r(struct _reent *, const char *, 
+		char **);
 	extern int mkstemp(char *);
 	extern int _setenv_r(struct _reent *, const char *, const char *, int);
 	extern int _unsetenv_r(struct _reent *, const char *);
-	extern long _strtol_r(struct _reent *,const char *restrict, char **restrict,
+	extern long _strtol_r(struct _reent *,const char *, char **,
 		int);
-	extern long long _strtoll_r(struct _reent *, const char *restrict,
-		char **restrict, int);
-	extern unsigned long _strtoul_r(struct _reent *,const char *restrict,
-		char **restrict, int);
-	extern unsigned long long _strtoull_r(struct _reent *, const char *restrict,
-		char **restrict, int);
+	extern long long _strtoll_r(struct _reent *, const char *,
+		char **, int);
+	extern unsigned long _strtoul_r(struct _reent *,const char *,
+		char **, int);
+	extern unsigned long long _strtoull_r(struct _reent *, const char *,
+		char **, int);
 	extern void	_free_r(struct _reent *, void *);
 	extern void *_calloc_r(struct _reent *, size_t, size_t);
 	extern void *_malloc_r(struct _reent *, size_t);
