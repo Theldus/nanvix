@@ -820,7 +820,7 @@ PUBLIC struct pregion *findreg(struct process *proc, addr_t addr)
 	for (preg = &proc->pregs[0]; preg < &proc->pregs[NR_PREGIONS]; preg++)
 	{
 		/* Skip invalid regions. */
-		if ((reg = preg->reg) == NULL)
+		if (preg == NULL || (reg = preg->reg) == NULL)
 			continue;
 		
 		/* Region grows downwards. */

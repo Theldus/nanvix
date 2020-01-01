@@ -410,11 +410,14 @@ PRIVATE int allocupg(addr_t vaddr, int writable)
  */
 PRIVATE int readpg(struct region *reg, addr_t addr)
 {
-	char *p;             /* Read pointer.             */
-	off_t off;           /* Block offset.             */
-	ssize_t count;       /* Bytes read.               */
-	struct inode *inode; /* File inode.               */
-	struct pte *pg;      /* Working page table entry. */
+	char *p;              /* Read pointer.             */
+	off_t off;            /* Block offset.             */
+	ssize_t count;        /* Bytes read.               */
+	struct inode *inode;  /* File inode.               */
+	struct pte *pg;       /* Working page table entry. */
+	struct pregion *preg; /* Process region pointer.   */
+	addr_t bss_start;     /* BSS start address.        */
+	size_t bss_size;      /* BSS size.                 */
 	
 	addr &= PAGE_MASK;
 	
@@ -423,12 +426,20 @@ PRIVATE int readpg(struct region *reg, addr_t addr)
 		return (-1);
 		
 	/* If DATA. */
-	if (reg->preg == DATA(curr_proc))
+	preg = DATA(curr_proc);
+	bss_start = preg->reg->bss.start;
+	bss_size = preg->reg->bss.size;
+
+	for (int i = 0; i < NR_DATA_REGIONS; i++)
 	{
-		/* If BSS, we do not need to fill from a file. */
-		if (addr >= reg->bss.start &&
-			addr < reg->bss.start + reg->bss.size)
-			return (0);
+		if (reg->preg == preg)
+		{
+			/* If BSS, we do not need to fill from a file. */
+			if (addr >= bss_start &&
+				addr < bss_start + bss_size)
+				return (0);
+		}
+		preg++;
 	}
 	
 	/* Find page table entry. */

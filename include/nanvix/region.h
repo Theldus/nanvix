@@ -49,7 +49,10 @@
 
 	/* Mini region flags. */
 	#define MREGION_FREE 0x01 /* Mini region is free. */
-	
+
+	/* 'Extra' regions. */
+	#define NR_DATA_REGIONS (NR_PREGIONS-3)
+
 	/*
 	 * Mini region.
 	 */

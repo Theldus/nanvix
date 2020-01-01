@@ -137,6 +137,8 @@ PRIVATE addr_t load_elf32(struct inode *inode)
 	off_t shdr_off;         /* Section header offset.         */
 	size_t shdr_num;        /* Section header amount.         */
 	size_t shdr_size;       /* Section header size.           */
+	int ph_re;              /* Amount of Exec. Prog. Headers. */
+	int ph_rw;              /* Amount of RW Program Headers.  */
 	
 	blk = block_map(inode, 0, 0);
 	
@@ -175,6 +177,9 @@ PRIVATE addr_t load_elf32(struct inode *inode)
 	seg = (struct elf32_phdr *)((char *)buffer_data(header) + elf->e_phoff);
 	
 	/* Load segments. */
+	ph_re = 0;
+	ph_rw = 0;
+	
 	for (i = 0; i < elf->e_phnum; i++)
 	{
 		/* Not loadable. */
@@ -196,6 +201,15 @@ PRIVATE addr_t load_elf32(struct inode *inode)
 		/* Text section. */
 		if (!(seg[i].p_flags ^ (PF_R | PF_X)))
 		{
+			if (ph_re++ > 1)
+			{
+				kprintf("multiples text sections not supported yet!");
+
+				brelse(header);
+				curr_proc->errno = -ENOEXEC;
+				return (0);
+			}
+		
 			preg = TEXT(curr_proc);
 
 			/* Failed to allocate region. */
@@ -206,7 +220,18 @@ PRIVATE addr_t load_elf32(struct inode *inode)
 		/* Data section. */
 		else
 		{
+			if (ph_rw > NR_DATA_REGIONS)
+			{
+				kprintf("data sections exceed the maximum supported!");
+				
+				brelse(header);
+				curr_proc->errno = -ENOEXEC;
+				return (0);
+			}
+			
 			preg = DATA(curr_proc);
+			preg = DATA(curr_proc) + ph_rw;
+			ph_rw++;
 		
 			/* Failed to allocate region. */
 			if ((reg = allocreg(S_IRUSR | S_IWUSR, seg[i].p_memsz, 0)) == NULL)

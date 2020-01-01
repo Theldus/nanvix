@@ -78,7 +78,7 @@ found:
 		preg = &curr_proc->pregs[i];
 		
 		/* Process region not in use. */
-		if (preg->reg == NULL)
+		if (preg == NULL || preg->reg == NULL)
 			continue;	
 			
 		lockreg(preg->reg);

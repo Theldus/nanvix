@@ -75,7 +75,7 @@
 	 */
 	/**@{*/
 	#define PROC_QUANTUM 50 /**< Quantum.                  */
-	#define NR_PREGIONS   4 /**< Number of memory regions. */
+	#define NR_PREGIONS   8 /**< Number of memory regions. */
 	/**@}*/
 	
 	/**
@@ -227,9 +227,9 @@
 	 */
 	/**@{*/
 	#define TEXT(p)  (&p->pregs[0]) /**< Text region.  */
-	#define DATA(p)  (&p->pregs[1]) /**< Data region.  */
+	#define HEAP(p)  (&p->pregs[1]) /**< Heap region.  */
 	#define STACK(p) (&p->pregs[2]) /**< Stack region. */
-	#define HEAP(p)  (&p->pregs[3]) /**< Heap region.  */
+	#define DATA(p)  (&p->pregs[3]) /**< Data region.  */
 	/**@}*/
 	
 	/**
