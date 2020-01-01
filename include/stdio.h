@@ -39,6 +39,9 @@
 #ifndef STDIO_H_
 #define STDIO_H_
 
+	/* Make libgmp happy. */
+	#define _STDIO_H_
+
 	#include "_ansi.h"
 
 	#define __need_size_t
@@ -224,8 +227,6 @@
 	extern int vsprintf(char *, const char *, va_list);
 	extern int vsscanf(const char *, const char *, va_list);
 
-#if defined(_POSIX_C_SOURCE) || defined(_XOPEN_SOURCE)
-
 	extern int dprintf(int, const char *, ...);
 	extern FILE *fdopen(int, const char *);
 	extern int fileno(FILE *);
@@ -241,8 +242,6 @@
 	extern int putc_unlocked(int, FILE *);
 	extern int putchar_unlocked(int);
 	extern int vdprintf(int, const char *, va_list);
-
-#endif
 
 	/* Newlib needs to those non-standard functions. */
 	extern int __srget_r(struct _reent *, FILE *);

@@ -189,7 +189,6 @@
 	extern int rand_r(unsigned *);
 #endif
 
-#ifdef _XOPEN_SOURCE
 	extern long a64l(const char *);
 	extern double drand48(void);
 	extern double erand48(unsigned short [3]);
@@ -202,7 +201,6 @@
 	extern int putenv(char *);
 	extern unsigned short *seed48(unsigned short [3]);
 	extern void srand48(long);
-#endif
 
 	/* Newlib needs to those non-standard functions. */
 	extern char *_dtoa_r(struct _reent *, double, int, int, int *, int *, char **);
