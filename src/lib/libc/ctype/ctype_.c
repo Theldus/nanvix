@@ -89,14 +89,19 @@ static char sccsid[] = "@(#)ctype_.c	5.6 (Berkeley) 6/1/90";
 #if defined(ALLOW_NEGATIVE_CTYPE_INDEX)
 /* No static const on Cygwin since it's referenced and potentially overwritten
    for compatibility with older applications. */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverflow"
+
 #ifndef __CYGWIN__
 static _CONST
 #endif
-unsigned char _ctype_b[128 + 256] = {
+char _ctype_b[128 + 256] = {
 	_CTYPE_DATA_128_255,
 	_CTYPE_DATA_0_127,
 	_CTYPE_DATA_128_255
 };
+
+#pragma GCC diagnostic pop
 
 #ifdef _NEED_OLD_CTYPE_PTR_DEFINITION
 #ifndef _MB_CAPABLE
@@ -128,20 +133,31 @@ __asm__ ("					\n\
 #    endif
 #  else /* !__CYGWIN__ */
 
-_CONST unsigned char _ctype_[1 + 256] = {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverflow"
+
+_CONST char _ctype_[1 + 256] = {
 	0,
 	_CTYPE_DATA_0_127,
 	_CTYPE_DATA_128_255
 };
+
+#pragma GCC diagnostic pop
+
 #  endif /* !__CYGWIN__ */
 
 #else	/* !defined(ALLOW_NEGATIVE_CTYPE_INDEX) */
 
-_CONST unsigned char _ctype_[1 + 256] = {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverflow"
+
+_CONST char _ctype_[1 + 256] = {
 	0,
 	_CTYPE_DATA_0_127,
 	_CTYPE_DATA_128_255
 };
+
+#pragma GCC diagnostic pop
 
 #ifdef _NEED_OLD_CTYPE_PTR_DEFINITION
 #ifndef _MB_CAPABLE

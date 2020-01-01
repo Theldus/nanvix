@@ -99,7 +99,8 @@
 	extern int toupper(int);
 
 	/* Forward Definitions. */
-	const char *__ctype_ptr__;
+	extern const char *__ctype_ptr__;
+	extern const char _ctype_[];
 
 #ifndef _XOPEN_SOURCE
 
