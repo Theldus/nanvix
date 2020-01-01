@@ -25,6 +25,7 @@
  * Main routine.
  */
 extern int main(int argc, char **argv);
+extern void _init(void);
 
 sem_t *usem[OPEN_MAX];
 
@@ -38,6 +39,9 @@ void _start(int argc, char **argv, char **envp)
 
 	for (int i = 0; i < OPEN_MAX; i++)
 		usem[i] = NULL;
+
+	/* Call _init. */
+	_init();
 
 	ret= main(argc, argv);
 	

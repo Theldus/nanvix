@@ -1,5 +1,5 @@
 /*
- * Copyright(C) 2011-2017 Pedro H. Penna <pedrohenriquepenna@gmail.com>
+ * Copyright(C) 2019-2019 Davidson Francis <davidsondfgl@gmail.com>
  * 
  * This file is part of Nanvix.
  * 
@@ -17,25 +17,12 @@
  * along with Nanvix. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <nanvix/syscall.h>
-#include <unistd.h>
-#include <errno.h>
+.global _init
+.section .init
+_init:
+	pushl %ebp
 
-/* Forward definitions. */
-extern void _fini(void);
-
-/*
- * Terminates the calling process.
- */
-void _exit(int status)
-{
-	/* Call _fini. */
-	_fini();
-
-	__asm__ volatile(
-		"int $0x80"
-		: /* empty. */
-		: "a" (NR__exit),
-		"b" (status)
-	);
-}
+.global _fini
+.section .fini
+_fini:
+	pushl %ebp

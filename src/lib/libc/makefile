@@ -57,6 +57,7 @@ C_SRC = $(wildcard *.c)            \
 
 # Assembly source files.
 ASM_SRC = $(wildcard arch/$(TARGET)/*.S) \
+		  $(wildcard *.S)                \
 
 # Object files.
 OBJ = $(ASM_SRC:.S=.o) \
