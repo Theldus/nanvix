@@ -605,20 +605,46 @@ PUBLIC int vfault(addr_t addr)
 	struct pte *pg;       /* Working page.           */
 	struct region *reg;   /* Working region.         */
 	struct pregion *preg; /* Working process region. */
+	size_t threshold;     /* Threshold attempts.     */
+	addr_t addr2;         /* Auxiliar address.       */
+	int page_count;       /* Pages to be allocated.  */
+	int i;                /* Loop index.             */
+
+	addr2 = addr;
+
+	/*
+	 * Number of attempts to allocate a faulting page to a (possible)
+	 * stack.
+	 */
+	#define THRESHOLD_ATTEMPTS 4
 
 	/* Get process region. */
 	if ((preg = findreg(curr_proc, addr)) != NULL)
 		lockreg(reg = preg->reg);
 	else
 	{
-		addr_t addr2;
+		threshold = 0;
 
-		addr2 = addr + PAGE_SIZE;
+		/*
+		 * Since the stack could grow more than 1 page per time
+		 * we need to check some attempts until giveup.
+		 *
+		 * Note that the ideal here would be try to allocate
+		 * until the number of pages match the faulting
+		 * address, but I will limit to 4 attempts, i.e: 4 pages
+		 * per time.
+		 */
+		do
+		{
+			addr2 += PAGE_SIZE;
+		}
+		while (threshold++ < THRESHOLD_ATTEMPTS &&
+			(preg = findreg(curr_proc, addr2)) == NULL);
 
-		/* Check for stack growth. */
-		if ((preg = findreg(curr_proc, addr2)) == NULL)
+		/* If 32kB is not enough, lets throw an error. */
+		if (preg == NULL)
 			goto error0;
-
+		
 		lockreg(reg = preg->reg);
 
 		/* Not a stack region. */
@@ -626,7 +652,7 @@ PUBLIC int vfault(addr_t addr)
 			goto error1;
 
 		/* Expand region. */
-		if (growreg(curr_proc, preg, PAGE_SIZE))
+		if (growreg(curr_proc, preg, (addr2 - addr)))
 			goto error1;
 	}
 	
@@ -646,8 +672,20 @@ PUBLIC int vfault(addr_t addr)
 	/* Demand zero. */
 	else
 	{
-		if (allocupg(addr, reg->mode & MAY_WRITE))
-			goto error1;
+		page_count = (addr2 - addr) >> PAGE_SHIFT;
+		i = 0;
+		do
+		{
+			/*
+			 * Since the stack grows downwards, the user-page
+			 * should be allocated in decreasing order, right?
+			 */
+			if (allocupg(addr, reg->mode & MAY_WRITE))
+				goto error1;
+			addr -= PAGE_SIZE;
+			i++;
+		}
+		while (i < page_count);
 	}
 
 	unlockreg(reg);
