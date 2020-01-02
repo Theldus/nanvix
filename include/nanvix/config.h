@@ -29,8 +29,8 @@
 	#define MACHINE_NAME "valhalla" /**< Machine name.              */
 	#define CPU                i386 /**< Cpu model.                 */
 	#define CPU_CLOCK      20000000 /**< Clock 20MHz.               */
-	#define MEMORY_SIZE   0x4000000 /**< Memory size (in bytes).    */
-	#define HDD_SIZE      0x2000000 /**< Hard disk size (in bytes). */
+	#define MEMORY_SIZE   0x8000000 /**< Memory size (in bytes).    */
+	#define HDD_SIZE      0x4000000 /**< Hard disk size (in bytes). */
 	/**@}*/
 	
 	/**
@@ -41,8 +41,8 @@
 	#define KERNEL_VERSION           "2.0" /**< Kernel version.                    */
 	#define PROC_MAX                    64 /**< Maximum number of process.         */
 	#define PROC_SIZE_MAX  (MEMORY_SIZE/8) /**< Maximum process size.              */
-	#define RAMDISK_SIZE          0x400000 /**< RAM disks size.                    */
-	#define INITRD_SIZE           0x400000 /**< Init RAM disk size.                */
+	#define RAMDISK_SIZE         0x4000000 /**< RAM disks size.                    */
+	#define INITRD_SIZE          0x4000000 /**< Init RAM disk size.                */
 	#define NR_INODES                 1024 /**< Number of in-core inodes.          */
 	#define NR_SUPERBLOCKS               4 /**< Number of in-core super blocks.    */
 	#define ROOT_DEV                0x0001 /**< Root device number.                */
@@ -52,8 +52,5 @@
 	#define NR_MOUNTING_POINT           64 /**< Maximum nunber of mounting points. */
 	#define DEBUG_MAX                   64 /**< Maximum number of debug functions. */
 	/**@}*/
-	
-	#if INITRD_SIZE > 0x400000
-		#error "INITRD_SIZE should not exceed 0x400000"
-	#endif
+
 #endif /* CONFIG_H_ */

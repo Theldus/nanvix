@@ -30,8 +30,8 @@
 #include <errno.h>
 
 /* Maximum RAM disk size. */
-#if RAMDISK_SIZE > PGTAB_SIZE
-	#error "RAMDISK_SIZE > PGTAB_SIZE"
+#if INITRD_SIZE > RAMDISK_SIZE
+	#error "RAMDISK_SIZE < INITRD_SIZE"
 #endif
 
 /* Number of RAM disks. */

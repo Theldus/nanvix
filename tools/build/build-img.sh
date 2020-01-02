@@ -26,7 +26,10 @@ ROOTGID=0
 NOOBUID=1
 NOOBUID=1
 
-LOOP=$(losetup -f)
+[[ $(id -u) -eq 0 ]] && LOOP=$(losetup -f)
+
+# HD Image?
+BUILD_HD_IMAGE=0
 
 # Toolchain
 STRIP=$TOOLSDIR/dev/toolchain/$TARGET/bin/$TARGET-elf-strip
@@ -176,16 +179,19 @@ else
 	done
 
 	# Build HDD image.
-	dd if=/dev/zero of=hdd.img bs=1024 count=65536
-	format hdd.img 1024 32768
-	copy_files hdd.img
+	if [ "$BUILD_HD_IMAGE" -eq 1 ];
+	then
+		dd if=/dev/zero of=hdd.img bs=1024 count=65536
+		format hdd.img 1024 32768
+		copy_files hdd.img
+	fi
 
 	# Build initrd image.
-	dd if=/dev/zero of=initrd.img bs=1024 count=4096
-	format initrd.img 512 4096
+	dd if=/dev/zero of=initrd.img bs=1024 count=65536
+	format initrd.img 1024 64535
 	copy_files initrd.img
 	initrdsize=`stat -c %s initrd.img`
-	maxsize=`grep "INITRD_SIZE" include/nanvix/config.h | cut -d" " -f 13`
+	maxsize=`grep "INITRD_SIZE" include/nanvix/config.h | grep -Po "(0x[0-9]+|[0-9]+)"`
 	maxsize=`printf "%d\n" $maxsize`
 	if [ $initrdsize -gt $maxsize ]; then
 		echo "NOT ENOUGH SPACE ON INITRD, size: $initrdsize / maxsize: $maxsize"

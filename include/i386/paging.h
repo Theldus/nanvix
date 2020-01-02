@@ -23,6 +23,7 @@
 	/* Shifts and masks. */
 	#define PAGE_SHIFT  12                  /* Page shift.                 */
 	#define PGTAB_SHIFT 22                  /* Page table shift.           */
+	#define PGDIR_SHIFT 10                  /* Page directory shift.       */
 	#define PAGE_MASK   (~(PAGE_SIZE - 1))  /* Page mask.                  */
 	#define PGTAB_MASK  (~(PGTAB_SIZE - 1)) /* Page table mask.            */
 

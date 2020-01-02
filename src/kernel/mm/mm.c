@@ -70,8 +70,8 @@
 /**
  * Too large INITRD?
  */
-#if (INITRD_SIZE > PGTAB_SIZE)
- 	#error "initrd too large"
+#if ((INITRD_SIZE % PGTAB_SIZE) != 0)
+ 	#error "INITRD_SIZE should be multiple of PGTAB_SIZE"
 #endif
 
 /* Buffers virt. */

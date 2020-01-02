@@ -309,10 +309,13 @@ PUBLIC int crtpgdir(struct process *proc)
 	/* Build page directory. */
 	pgdir[0] = curr_proc->pgdir[0];
 	pgdir[PGTAB(KBASE_VIRT)] = curr_proc->pgdir[PGTAB(KBASE_VIRT)];
-	pgdir[PGTAB(KPOOL_VIRT)] = curr_proc->pgdir[PGTAB(KPOOL_VIRT)];
-	pgdir[PGTAB(INITRD_VIRT)] = curr_proc->pgdir[PGTAB(INITRD_VIRT)];
+	pgdir[PGTAB(KPOOL_VIRT)] = curr_proc->pgdir[PGTAB(KPOOL_VIRT)];	
 	pgdir[PGTAB(SERIAL_VIRT)] = curr_proc->pgdir[PGTAB(SERIAL_VIRT)];
-	
+
+	/* INITRD page directory entries. */
+	for (int i = 0; i < INITRD_SIZE >> PGTAB_SHIFT; i++)
+		pgdir[PGTAB(INITRD_VIRT) + i] = curr_proc->pgdir[PGTAB(INITRD_VIRT) + i];
+
 	/* Clone kernel stack. */
 	kmemcpy(kstack, curr_proc->kstack, KSTACK_SIZE);
 	
