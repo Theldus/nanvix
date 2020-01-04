@@ -61,7 +61,7 @@
 	/**
  	 * @brief Superblock magic number.
  	 */
- 	#define SUPER_MAGIC 0x137f
+	#define SUPER_MAGIC 0x138f /**< Minix v1 w/ 30 chars file name. */
 
 #ifndef _ASM_FILE_ 	
 	/**
@@ -161,7 +161,7 @@
 	/**
 	 * @brief Maximum name on a Minix file system.
 	 */
-	#define MINIX_NAME_MAX 14
+	#define MINIX_NAME_MAX 30
 
 #ifndef _ASM_FILE_	
 	/*
