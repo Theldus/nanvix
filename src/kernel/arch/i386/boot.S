@@ -114,7 +114,7 @@ start:
 
 	/* Build kernel pool tables. */
 	movl $kpool_pgtab, %edi
-	movl $0x01000000 + 7, %eax
+	movl $KPOOL_PHYS + 7, %eax
 	start.loop2:
 		stosl
 		addl $PAGE_SIZE,    %eax
@@ -124,11 +124,11 @@ start:
 	/* Build init page directory. */
 	movl $kpgtab + 3, idle_pgdir + PTE_SIZE*0         /* Kernel code + data at 0x00000000 */
 	movl $kpgtab + 3, idle_pgdir + PTE_SIZE*768       /* Kernel code + data at 0xc0000000 */
-	movl $kpool_pgtab + 3, idle_pgdir + PTE_SIZE*772  /* Kernel page pool at 0xc1000000   */
+	movl $kpool_pgtab + 3, idle_pgdir + PTE_SIZE*789  /* Kernel page pool at 0xc5000000   */
 	
-	/* Build initrd page directory entries, initrd at 0xc2000000 */
+	/* Build initrd page directory entries, initrd at 0xc1000000 */
 	movl $initrd_pgtab + 3, %eax
-	movl $idle_pgdir + PTE_SIZE*776, %ecx
+	movl $idle_pgdir + PTE_SIZE*772, %ecx
 	movl $idle_pgdir + PTE_SIZE*((INITRD_VIRT+INITRD_SIZE)>>PGTAB_SHIFT), %edx
 	start.loop3:
 		movl %eax, (%ecx)

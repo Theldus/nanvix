@@ -29,7 +29,7 @@
 	#define MACHINE_NAME "valhalla" /**< Machine name.              */
 	#define CPU                i386 /**< Cpu model.                 */
 	#define CPU_CLOCK      20000000 /**< Clock 20MHz.               */
-	#define MEMORY_SIZE   0x8000000 /**< Memory size (in bytes).    */
+	#define MEMORY_SIZE  0x10000000 /**< Memory size (in bytes).    */
 	#define HDD_SIZE      0x4000000 /**< Hard disk size (in bytes). */
 	/**@}*/
 	
