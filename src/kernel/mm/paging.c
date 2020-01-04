@@ -449,7 +449,7 @@ PRIVATE int readpg(struct region *reg, addr_t addr)
 	pg = getpte(curr_proc, addr);
 	
 	/* Read page. */
-	off = reg->file.off + (PG(addr) << PAGE_SHIFT);
+	off = reg->file.off + ((addr - reg->preg->start) & PAGE_MASK);
 	inode = reg->file.inode;
 	p = (char *)(addr);
 	count = file_read(inode, p, PAGE_SIZE, off);
