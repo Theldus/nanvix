@@ -186,5 +186,10 @@ PUBLIC void yield(void)
 		}
 	}
 	
+	/* Save and restore FPU/SIMD context. */
+	fpu_save(curr_proc);
+	fpu_restore(next);
+	
+	/* Swith context. */
 	switch_to(next);
 }

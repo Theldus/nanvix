@@ -37,7 +37,6 @@
 .globl physcpy
 .globl switch_to
 .globl user_mode
-.globl fpu_init
 .globl pmc_init
 .globl read_pmc
 .globl write_msr
@@ -216,7 +215,6 @@ switch_to:
 	pushl %ebp
 	pushl PROC_KESP(%eax)
 	movl %esp, PROC_KESP(%eax)
-	fnsave PROC_FSS(%eax)
 	
 	/* Switch processes. */
 	movl %ecx, curr_proc
@@ -230,7 +228,6 @@ switch_to:
 	
 	/* Load process context. */
 	movl PROC_KESP(%ecx), %esp
-	frstor PROC_FSS(%ecx)
 
 	push %ecx
 	call processor_reload
@@ -289,19 +286,6 @@ user_mode:
 	pushl $USER_CS
 	pushl %ecx
 	iret
-
-/*----------------------------------------------------------------------------*
- *                                 fpu_init()                                 *
- *----------------------------------------------------------------------------*/
-
-/*
- * Initializes the FPU.
- */
-fpu_init:
-	fninit
-	movl curr_proc, %eax
-	fnsave  PROC_FSS(%eax)
-	ret
 
 /*----------------------------------------------------------------------------*
  *                                  pmc_init()                                *
