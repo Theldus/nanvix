@@ -249,7 +249,7 @@ PUBLIC ssize_t file_write_minix(struct inode *i, const void *buf, size_t n, off_
 		blkoff = off % BLOCK_SIZE;
 		
 		chunk = (n < BLOCK_SIZE - blkoff) ? n : BLOCK_SIZE - blkoff;
-		kmemcpy((char *)buffer_data(bbuf) + blkoff, buf, chunk);
+		kmemcpy((char *)buffer_data(bbuf) + blkoff, p, chunk);
 		buffer_dirty(bbuf, 1);
 		brelse(bbuf);
 		
