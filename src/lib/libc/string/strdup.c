@@ -66,8 +66,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(_POSIX_C_SOURCE) || defined(_XOPEN_SOURCE)
-
 /**
  * @brief Duplicates a specific number of bytes from a string.
  *
@@ -81,5 +79,4 @@ char *strdup(const char *str)
   return _strdup_r (_REENT, str);
 }
 
-#endif /* _POSIX_C_SOURCE || _XOPEN_SOURCE */
 #endif /* !_REENT_ONLY */

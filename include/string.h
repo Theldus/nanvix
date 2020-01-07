@@ -115,7 +115,6 @@
 	extern char *strtok(char *, const char *);
 	extern size_t strxfrm(char *, const char *, size_t);
 
-#if defined(_POSIX_C_SOURCE) || defined(_XOPEN_SOURCE)
 	extern char *stpcpy(char *, const char *);
 	extern char *stpncpy(char *, const char *, size_t);
 	extern char *strdup(const char *);
@@ -126,7 +125,6 @@
 	extern size_t strnlen(const char *, size_t);
 	extern char *strsignal(int);
 	extern char *strtok_r(char *, const char *, char **);
-#endif
 
 #ifdef _XOPEN_SOURCE
 	extern void *memccpy(void *, const void *, int, size_t);

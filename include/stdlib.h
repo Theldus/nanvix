@@ -181,13 +181,12 @@
 	extern size_t wcstombs(char *, const wchar_t *, size_t);
 	extern int wctomb(char *, wchar_t);
 
-#if defined(_POSIX_C_SOURCE) || defined(_XOPEN_SOURCE)
 	extern int getsubopt(char **, char *const *, char **);
 	extern char *mkdtemp(char *);
+	extern char *mktemp(char *);
 	extern int setenv(const char *, const char *, int);
 	extern int unsetenv(const char *);
 	extern int rand_r(unsigned *);
-#endif
 
 	extern long a64l(const char *);
 	extern double drand48(void);
