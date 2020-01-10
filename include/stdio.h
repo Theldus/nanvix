@@ -82,7 +82,7 @@
 	/**
 	 * @brief Standard buffer size.
 	 */
-	#define BUFSIZ 1024
+	#define BUFSIZ 8192
 
 	/**
 	 * @brief End of file.
