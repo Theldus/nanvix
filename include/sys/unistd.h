@@ -366,8 +366,13 @@ int	_EXFUN(unlinkat, (int, const char *, int));
    guarding them.  Keeping them unguarded for backward compatibility. */
 #define _SC_NPROCESSORS_CONF              9
 #define _SC_NPROCESSORS_ONLN             10
+
+/* Not supported by Nanvix right now. */
+#if 0
 #define _SC_PHYS_PAGES                   11
 #define _SC_AVPHYS_PAGES                 12
+#endif
+
 /* End of non-POSIX values. */
 #define _SC_MQ_OPEN_MAX                  13
 #define _SC_MQ_PRIO_MAX                  14
