@@ -38,6 +38,7 @@ PUBLIC unsigned startup_time = 0;
 PRIVATE void do_clock()
 {
 	ticks++;
+	curr_proc->counter--;
 	
 	if (KERNEL_WAS_RUNNING(curr_proc))
 	{
@@ -48,7 +49,7 @@ PRIVATE void do_clock()
 	curr_proc->utime++;
 		
 	/* Give up processor time. */
-	if (--curr_proc->counter == 0)
+	if (curr_proc->counter <= 0)
 		yield();
 }
 

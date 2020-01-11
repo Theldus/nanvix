@@ -133,12 +133,23 @@ leave:
 	btrl $PROC_SYS, PROC_FLAGS(%ebx)
 	jnc check_signals
 	
-	/*
-	 * The kernel is non-preemptive.
-	 * So, let us be nice with other processes
-	 * and give them a chance to run.
-	 */
-	call yield
+	/* Check if the syscall was a fork and if so, preempt. */
+	movl PROC_SYSNR(%ebx), %eax
+	cmpl $NR_fork, %eax
+	je leave.preempt
+
+	/* Check if PID > 1 and if so, do not preempt... */
+	movl PROC_PID(%ebx), %eax
+	cmpl $1, %eax
+	jg leave.out
+	
+	leave.preempt:
+		/*
+		 * The kernel is non-preemptive.
+		 * So, let us be nice with other processes
+		 * and give them a chance to run.
+		 */
+		call yield
 
 	movl curr_proc, %ebx
 	
@@ -318,6 +329,10 @@ syscall:
 	
 	/* Set 'handling system call' flag. */
 	btsl $PROC_SYS, PROC_FLAGS(%ebx)
+	
+	/* Set syscall number. */
+	movl EAX(%esp), %eax
+	movl %eax, PROC_SYSNR(%ebx)
 	
 	/* Leave critical region. */
 	sti

@@ -117,8 +117,10 @@
 	#define PROC_KSTACK   20 /**< Kernel stack pointer offset.   */
 	#define PROC_RESTORER 24 /**< Signal restorer.               */
 	#define PROC_HANDLERS 28 /**< Signal handlers offset.        */
-	#define PROC_IRQLVL  120  /**< IRQ Level offset.             */
-	#define PROC_SIMD    124  /**< SIMD Saved Status offset.     */
+	#define PROC_IRQLVL  120 /**< IRQ Level offset.              */
+	#define PROC_PID     124 /**< Process ID.                    */
+	#define PROC_SYSNR   128 /**< Last syscall nr executed.      */
+	#define PROC_SIMD    132 /**< SIMD Saved Status offset.      */
 	/**@}*/
 
 #ifndef _ASM_FILE_
@@ -141,6 +143,8 @@
     	void (*restorer)(void);            /**< Signal restorer.        */
 		sighandler_t handlers[NR_SIGNALS]; /**< Signal handlers.        */
 		unsigned irqlvl;                   /**< Current IRQ level.      */
+    	pid_t pid;                         /**< Process ID.             */
+    	int syscall_nr;                    /**< Last syscall number ex. */
     	struct fpu simd_state;             /**< Current SIMD status.    */
     	struct pmc pmcs;                   /**< PMC status.             */
 		/**@}*/
@@ -179,7 +183,6 @@
 		gid_t gid;              /**< Group ID.                */
 		gid_t egid;             /**< Effective group user ID. */
 		gid_t sgid;             /**< Saved set-group-ID.      */
-    	pid_t pid;              /**< Process ID.              */
     	struct process *pgrp;   /**< Process group ID.        */
     	struct process *father; /**< Father process.          */
 		char name[NAME_MAX];    /**< Process name.            */
