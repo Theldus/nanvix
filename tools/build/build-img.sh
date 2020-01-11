@@ -32,8 +32,8 @@ NOOBUID=1
 BUILD_HD_IMAGE=0
 
 # Toolchain
-STRIP=$TOOLSDIR/dev/toolchain/$TARGET/bin/$TARGET-elf-strip
-OBJCOPY=$TOOLSDIR/dev/toolchain/$TARGET/bin/$TARGET-elf-objcopy
+STRIP=$TARGET-elf-nanvix-strip
+OBJCOPY=$TARGET-elf-nanvix-objcopy
 
 # Checks if TARGET is OR1K, if so, use Qemu
 if [ "$TARGET" = "or1k" ];
@@ -100,6 +100,56 @@ function format {
 }
 
 #
+# Copy a given folder (and its files) to a root directory disk image.
+#   $1 Disk image name.
+#   $2 Target Folder
+#
+function copy_folder
+{
+	disk="$1"
+	folder="$2"
+
+	# Seems like mkdir.minix do not works well with leading '/'
+	# lets check and remove if any
+	if [ "${folder: -1}" = "/" ];
+	then
+		folder=${folder%?}
+	fi
+	
+	complete_path=$(readlink -f "$folder")
+	basefolder=$(basename "$folder")
+	prefix=$(echo "$complete_path" | sed "s/$basefolder\/*//g")
+
+	# Make directories first
+	find "$complete_path" -type d -print0 | while read -d $'\0' cfolder
+	do
+		newpath=${cfolder#"$prefix"}
+		if [ "${newpath: 0}" != "/" ];
+		then
+			newpath="/$newpath"
+		fi
+		
+		echo "Creating $newpath folder..."
+		$QEMU_VIRT bin/mkdir.minix "$disk" "$newpath" "$ROOTUID" "$ROOTGID"
+	done
+	echo ""
+	
+	# Copy files
+	find "$complete_path" -type f -print0 | while read -d $'\0' cfolder
+	do
+		newpath=${cfolder#"$prefix"}
+		if [ "${newpath: 0}" != "/" ];
+		then
+			newpath="/$newpath"
+		fi
+		
+		echo "Copying $cfolder file into $newpath..."
+		$QEMU_VIRT bin/cp.minix "$disk" "$cfolder" "$newpath" "$ROOTUID" "$ROOTGID"
+	done
+	echo ""
+}
+
+#
 # Copy files to a disk image.
 #   $1 Target disk image.
 #
@@ -134,11 +184,12 @@ function copy_files
 #
 function strip_binary
 {
+	mkdir -p $BINDIR/symbols/bin/{sbin,ubin}
 	if [[ "$1" != *.sym ]]; then
 		# Get debug symbols from kernel
-		$OBJCOPY --only-keep-debug $1 $1.sym
+		$OBJCOPY --only-keep-debug $1 $BINDIR/symbols/$1.sym
 		# Remove debug symbols
-		$STRIP --strip-debug --strip-unneeded $1
+		$STRIP --strip-debug $1
 	fi;
 }
 
