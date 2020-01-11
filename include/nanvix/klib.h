@@ -207,7 +207,19 @@
 	 */
 	#define ALIGN(x, a) \
 		(((x) + ((a) - 1)) & ~((a) - 1))
-	
+		
+	/**
+	 * @brief Checks if a given address @p a is aligned
+	 * @p s bytes.
+	 *
+	 * @param a Addres to be checked.
+	 * @param s Boundary.
+	 *
+	 * @returns Returns 1 if aligned and 0 otherwise.
+	 */
+	#define ALIGNED(a, s) \
+		(!(((addr_t)(a)) & ((s) - 1)))
+
 	/**
 	 * @brief Checks if 'a' agrees on size if 'b'
 	 * 
