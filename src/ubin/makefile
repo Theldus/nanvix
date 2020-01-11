@@ -19,9 +19,8 @@
 #
 
 # Toolchain configuration.
-export CFLAGS  += -Os -D_POSIX_C_SOURCE
-export LDFLAGS += -Wl,-e,_start
-export LIBS = $(LIBDIR)/libc.a -lgcc $(LIBDIR)/libm.a
+export CC     = $(TARGET)-elf-nanvix-gcc
+export CFLAGS = -Os -D_POSIX_C_SOURCE
 
 # Conflicts.
 .PHONY: cat
@@ -61,111 +60,111 @@ all: cat chgrp chmod chown cp echo kill ln login ls mv nice pwd rm stat \
 
 # Builds cat.
 cat: 
-	$(CC) $(CFLAGS) $(LDFLAGS) cat/*.c -o $(UBINDIR)/cat $(LIBS)
+	$(CC) $(CFLAGS) cat/*.c -o $(UBINDIR)/cat
 	
 # Builds chgrp.
 chgrp: 
-	$(CC) $(CFLAGS) $(LDFLAGS) chgrp/*.c -o $(UBINDIR)/chgrp $(LIBS)
+	$(CC) $(CFLAGS) chgrp/*.c -o $(UBINDIR)/chgrp
 	
 # Builds chmod.
 chmod: 
-	$(CC) $(CFLAGS) $(LDFLAGS) chmod/*.c -o $(UBINDIR)/chmod $(LIBS)
+	$(CC) $(CFLAGS) chmod/*.c -o $(UBINDIR)/chmod
 	
 # Builds chown.
 chown: 
-	$(CC) $(CFLAGS) $(LDFLAGS) chown/*.c -o $(UBINDIR)/chown $(LIBS)
+	$(CC) $(CFLAGS) chown/*.c -o $(UBINDIR)/chown
 	
 # Builds cp.
 cp: 
-	$(CC) $(CFLAGS) $(LDFLAGS) cp/*.c -o $(UBINDIR)/cp $(LIBS)
+	$(CC) $(CFLAGS) cp/*.c -o $(UBINDIR)/cp
 
 # Builds date.
 date: 
-	$(CC) $(CFLAGS) $(LDFLAGS) date/*.c -o $(UBINDIR)/date $(LIBS)
+	$(CC) $(CFLAGS) date/*.c -o $(UBINDIR)/date
 
 # Builds echo.
 echo: 
-	$(CC) $(CFLAGS) $(LDFLAGS) echo/*.c -o $(UBINDIR)/echo $(LIBS)
+	$(CC) $(CFLAGS) echo/*.c -o $(UBINDIR)/echo
 	
 # Builds kill.
 kill: 
-	$(CC) $(CFLAGS) $(LDFLAGS) kill/*.c -o $(UBINDIR)/kill $(LIBS)
+	$(CC) $(CFLAGS) kill/*.c -o $(UBINDIR)/kill
 	
 # Builds ln.
 ln: 
-	$(CC) $(CFLAGS) $(LDFLAGS) ln/*.c -o $(UBINDIR)/ln $(LIBS)
+	$(CC) $(CFLAGS) ln/*.c -o $(UBINDIR)/ln
 	
 # Builds login.
 login: 
-	$(CC) $(CFLAGS) $(LDFLAGS) login/*.c -o $(UBINDIR)/login $(LIBS)
+	$(CC) $(CFLAGS) login/*.c -o $(UBINDIR)/login
 	
 # Builds ls.
 ls: 
-	$(CC) $(CFLAGS) $(LDFLAGS) ls/*.c -o $(UBINDIR)/ls $(LIBS)
+	$(CC) $(CFLAGS) ls/*.c -o $(UBINDIR)/ls
 	
 # Builds mkdir.
 mkdir: 
-	$(CC) $(CFLAGS) $(LDFLAGS) mkdir/*.c -o $(UBINDIR)/mkdir $(LIBS)
+	$(CC) $(CFLAGS) mkdir/*.c -o $(UBINDIR)/mkdir
 	
 # Builds mv.
 mv: 
-	$(CC) $(CFLAGS) $(LDFLAGS) mv/*.c -o $(UBINDIR)/mv $(LIBS)
+	$(CC) $(CFLAGS) mv/*.c -o $(UBINDIR)/mv
 	
 # Builds nice.
 nice: 
-	$(CC) $(CFLAGS) $(LDFLAGS) nice/*.c -o $(UBINDIR)/nice $(LIBS)
+	$(CC) $(CFLAGS) nice/*.c -o $(UBINDIR)/nice
 	
 # Builds pwd.
 pwd: 
-	$(CC) $(CFLAGS) $(LDFLAGS) pwd/*.c -o $(UBINDIR)/pwd $(LIBS)
+	$(CC) $(CFLAGS) pwd/*.c -o $(UBINDIR)/pwd
 	
 # Builds rm.
 rm: 
-	$(CC) $(CFLAGS) $(LDFLAGS) rm/*.c -o $(UBINDIR)/rm $(LIBS)
+	$(CC) $(CFLAGS) rm/*.c -o $(UBINDIR)/rm
 	
 # Builds rmdir.
 rmdir: 
-	$(CC) $(CFLAGS) $(LDFLAGS) rmdir/*.c -o $(UBINDIR)/rmdir $(LIBS)
+	$(CC) $(CFLAGS) rmdir/*.c -o $(UBINDIR)/rmdir
 	
 # Builds stat.
 stat: 
-	$(CC) $(CFLAGS) $(LDFLAGS) stat/*.c -o $(UBINDIR)/stat $(LIBS)
+	$(CC) $(CFLAGS) stat/*.c -o $(UBINDIR)/stat
 	
 # Builds sync.
 sync: 
-	$(CC) $(CFLAGS) $(LDFLAGS) sync/*.c -o $(UBINDIR)/sync $(LIBS)
+	$(CC) $(CFLAGS) sync/*.c -o $(UBINDIR)/sync
 	
 # Builds touch.
 touch: 
-	$(CC) $(CFLAGS) $(LDFLAGS) touch/*.c -o $(UBINDIR)/touch $(LIBS)
+	$(CC) $(CFLAGS) touch/*.c -o $(UBINDIR)/touch
 	
 # Builds tsh.
 tsh: 
-	$(CC) $(CFLAGS) $(LDFLAGS) tsh/*.c -o $(UBINDIR)/tsh $(LIBS)
+	$(CC) $(CFLAGS) tsh/*.c -o $(UBINDIR)/tsh
 
 # Builds ps.
 ps: 
-	$(CC) $(CFLAGS) $(LDFLAGS) ps/*.c -o $(UBINDIR)/ps $(LIBS)
+	$(CC) $(CFLAGS) ps/*.c -o $(UBINDIR)/ps
 
 # Builds clear.
 clear: 
-	$(CC) $(CFLAGS) $(LDFLAGS) clear/*.c -o $(UBINDIR)/clear $(LIBS)
+	$(CC) $(CFLAGS) clear/*.c -o $(UBINDIR)/clear
 
 # Builds nim.
 nim: 
-	$(CC) $(CFLAGS) $(LDFLAGS) nim/*.c -o $(UBINDIR)/nim $(LIBS)
+	$(CC) $(CFLAGS) nim/*.c -o $(UBINDIR)/nim
 
 # Builds mount.
 mount: 
-	$(CC) $(CFLAGS) $(LDFLAGS) mount/*.c -o $(UBINDIR)/mount $(LIBS)
+	$(CC) $(CFLAGS) mount/*.c -o $(UBINDIR)/mount
 
 # Builds unmount.
 unmount: 
-	$(CC) $(CFLAGS) $(LDFLAGS) unmount/*.c -o $(UBINDIR)/unmount $(LIBS)
+	$(CC) $(CFLAGS) unmount/*.c -o $(UBINDIR)/unmount
 
 # Builds unmount.
 mkfs: 
-	$(CC) $(CFLAGS) $(LDFLAGS) mkfs/*.c -o $(UBINDIR)/mkfs $(LIBS)
+	$(CC) $(CFLAGS) mkfs/*.c -o $(UBINDIR)/mkfs
 
 # Clean compilation files.
 clean:

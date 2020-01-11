@@ -34,9 +34,9 @@ export SRCDIR   = $(CURDIR)/src
 export TOOLSDIR = $(CURDIR)/tools
 
 # Toolchain
-export CC = $(TOOLSDIR)/dev/toolchain/$(TARGET)/bin/$(TARGET)-elf-gcc
-export LD = $(TOOLSDIR)/dev/toolchain/$(TARGET)/bin/$(TARGET)-elf-ld
-export AR = $(TOOLSDIR)/dev/toolchain/$(TARGET)/bin/$(TARGET)-elf-ar
+export CC = $(TARGET)-elf-nanvix-gcc
+export LD = $(TARGET)-elf-nanvix-ld
+export AR = $(TARGET)-elf-nanvix-ar
 
 # Random number for chaos.
 export KEY = 13
@@ -58,7 +58,7 @@ export DBGFLAGS += -g -fno-omit-frame-pointer
 .PHONY: tools
 
 # Builds everything.
-all: nanvix documentation
+all: nanvix
 
 # Builds Nanvix.
 ifeq ($(TARGET),i386)

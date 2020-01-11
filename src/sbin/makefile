@@ -20,9 +20,8 @@
 #
 
 # Toolchain configuration.
-export CFLAGS  += -Os
-export LDFLAGS += -Wl,-e,_start
-export LIBS = $(LIBDIR)/libc.a -lgcc $(LIBDIR)/libm.a
+export CC     = $(TARGET)-elf-nanvix-gcc
+export CFLAGS = -Os -D_POSIX_C_SOURCE -D_POSIX_THREADS -U__STRICT_ANSI__
 
 # Resolves conflicts
 .PHONY: foobar
@@ -35,19 +34,19 @@ all: init shutdown test
 
 # Builds foobar.
 foobar:
-	$(CC) $(CFLAGS) $(LDFLAGS) foobar/*.c -o $(SBINDIR)/foobar $(LIBS)
+	$(CC) $(CFLAGS) foobar/*.c -o $(SBINDIR)/foobar
 
 # Builds init.
 init:
-	$(CC) $(CFLAGS) $(LDFLAGS) init/*.c -o $(SBINDIR)/init $(LIBS)
+	$(CC) $(CFLAGS) init/*.c -o $(SBINDIR)/init
 
 # Builds shutdown.
 shutdown:
-	$(CC) $(CFLAGS) $(LDFLAGS) shutdown/*.c -o $(SBINDIR)/shutdown $(LIBS)
+	$(CC) $(CFLAGS) shutdown/*.c -o $(SBINDIR)/shutdown
 
 # Builds test.
 test:
-	$(CC) $(CFLAGS) $(LDFLAGS) test/*.c -o $(SBINDIR)/test $(LIBS)
+	$(CC) $(CFLAGS) test/*.c -o $(SBINDIR)/test
 	
 # Cleans compilations files.
 clean:
