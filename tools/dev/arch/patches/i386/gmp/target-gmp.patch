@@ -1,0 +1,12 @@
+diff -ruN old-gmp-4.3.2/configfsf.sub gmp-4.3.2/configfsf.sub
+--- old-gmp-4.3.2/configfsf.sub	2010-01-07 17:09:02.000000000 -0300
++++ gmp-4.3.2/configfsf.sub	2019-12-26 02:24:23.702551000 -0300
+@@ -1251,7 +1251,7 @@
+ 	      | -*vms* | -sco* | -esix* | -isc* | -aix* | -sunos | -sunos[34]*\
+ 	      | -hpux* | -unos* | -osf* | -luna* | -dgux* | -solaris* | -sym* \
+ 	      | -amigaos* | -amigados* | -msdos* | -newsos* | -unicos* | -aof* \
+-	      | -aos* \
++	      | -aos* | -nanvix* \
+ 	      | -nindy* | -vxsim* | -vxworks* | -ebmon* | -hms* | -mvs* \
+ 	      | -clix* | -riscos* | -uniplus* | -iris* | -rtu* | -xenix* \
+ 	      | -hiux* | -386bsd* | -knetbsd* | -mirbsd* | -netbsd* \

@@ -22,6 +22,9 @@
 # Retrieve the number of processor cores
 num_cores = `grep -c ^processor /proc/cpuinfo`
 
+# Conflicts
+.PHONY: lib
+
 # Directories.
 export BINDIR   = $(CURDIR)/bin
 export SBINDIR  = $(BINDIR)/sbin
@@ -75,6 +78,10 @@ nanvix: image
 	bash $(TOOLSDIR)/build/build-img.sh --build-iso
 endif
 endif
+
+# Builds Nanvix Newlib's library.
+lib:
+	cd $(SRCDIR) && $(MAKE) -j$(num_cores) lib
 
 # Builds Nanvix with debug flags.
 nanvix-debug:
