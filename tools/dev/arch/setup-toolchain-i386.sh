@@ -94,6 +94,19 @@ if [ ! "$(ls -A $WORKDIR)" ]; then
 	patch -p1 < ../../../../arch/patches/i386/mpc/target-mpc.patch
 fi
 
+# If download-only mode, we do not proceed
+#
+# This is expected to happen when the user already have the cross-compiler
+# properly installed but deleted the source code and now wants to build
+# the Binutils/GCC Self-Hosted. In this case, download and patch the source
+# code is enough ;-).
+#
+if [ "$1" = "--download-only" ];
+then
+	cd $CURDIR
+	exit 0
+fi
+
 # Check if PREFIX was already set, if not, let us set our default path
 if [ -z "$PREFIX" ]
 then

@@ -18,6 +18,10 @@
 # along with Nanvix.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+# Paths
+CURDIR="$( cd "$(dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+PORTS_DIR=$(readlink -f $CURDIR/../../src/ubin/PORTS)
+
 # Root credentials.
 ROOTUID=0
 ROOTGID=0
@@ -115,34 +119,34 @@ function copy_folder
 	then
 		folder=${folder%?}
 	fi
-	
+
 	complete_path=$(readlink -f "$folder")
 	basefolder=$(basename "$folder")
-	prefix=$(echo "$complete_path" | sed "s/$basefolder\/*//g")
+	prefix=$(dirname "$complete_path")
 
 	# Make directories first
 	find "$complete_path" -type d -print0 | while read -d $'\0' cfolder
 	do
 		newpath=${cfolder#"$prefix"}
-		if [ "${newpath: 0}" != "/" ];
+		if [ "${newpath:0:1}" != "/" ];
 		then
 			newpath="/$newpath"
 		fi
-		
+
 		echo "Creating $newpath folder..."
 		$QEMU_VIRT bin/mkdir.minix "$disk" "$newpath" "$ROOTUID" "$ROOTGID"
 	done
 	echo ""
-	
+
 	# Copy files
 	find "$complete_path" -type f -print0 | while read -d $'\0' cfolder
 	do
 		newpath=${cfolder#"$prefix"}
-		if [ "${newpath: 0}" != "/" ];
+		if [ "${newpath:0:1}" != "/" ];
 		then
 			newpath="/$newpath"
 		fi
-		
+
 		echo "Copying $cfolder file into $newpath..."
 		$QEMU_VIRT bin/cp.minix "$disk" "$cfolder" "$newpath" "$ROOTUID" "$ROOTGID"
 	done
@@ -174,6 +178,25 @@ function copy_files
 		if [[ "$filename" != *.sym ]]; then
 			$QEMU_VIRT bin/cp.minix $1 $file /bin/$filename $ROOTUID $ROOTGID
 		fi;
+	done
+
+	# For each folder in the PORTS directory, copy those that have
+	# the 'binaries' folder into the disk image
+	for folder in $(ls -d $PORTS_DIR/*)
+	do
+		# Skip folders that do not contains the 'binaries' folder inside
+		if [ ! -d "$folder/binaries" ]
+		then
+			continue
+		fi
+
+		echo "Copying $(basename $folder) port into initrd..."
+
+		# Iterate over each folder and copy them into the disk image
+		for targ_folder in $(ls -d $folder/binaries/*)
+		do
+			copy_folder initrd.img $targ_folder
+		done
 	done
 }
 

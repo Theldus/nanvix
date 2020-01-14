@@ -35,6 +35,7 @@ export LIBDIR   = $(CURDIR)/lib
 export DOXYDIR  = $(CURDIR)/doxygen
 export SRCDIR   = $(CURDIR)/src
 export TOOLSDIR = $(CURDIR)/tools
+export PORTDIR  = $(CURDIR)/src/ubin/PORTS
 
 # Toolchain
 export CC = $(TARGET)-elf-nanvix-gcc
@@ -83,6 +84,10 @@ endif
 lib:
 	cd $(SRCDIR) && $(MAKE) -j$(num_cores) lib
 
+# Builds all the Nanvis ported programs
+ports:
+	bash $(PORTDIR)/build.sh
+
 # Builds Nanvix with debug flags.
 nanvix-debug:
 	$(MAKE) -j$(num_cores) nanvix
@@ -122,3 +127,7 @@ clean:
 	@rm -rf $(DOCDIR)/*-kernel
 	cd $(SRCDIR) && $(MAKE) clean
 	cd $(TOOLSDIR) && $(MAKE) clean
+
+# Cleans all the ported programs
+ports-clean:
+	bash $(PORTDIR)/clean.sh
