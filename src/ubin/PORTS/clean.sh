@@ -27,7 +27,7 @@ PORTS_DIR=$CURDIR
 for folder in $(ls -d $PORTS_DIR/*/)
 do
 	# Skip folders that do not contains the 'clean.sh' file inside
-	if [ ! -f "$folder/build.sh" ]
+	if [ ! -f "$folder/clean.sh" ]
 	then
 		echo "Attention: $folder do not contains the required clean.sh"
 		echo "script in order to clean up, maybe this is an wrong port?"
