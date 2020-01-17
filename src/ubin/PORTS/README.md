@@ -9,6 +9,7 @@ PORTS/
 ├── build.sh
 ├── clean.sh
 └── my_program_port
+    ├── build    (optional, created with build.sh and deleted with clean.sh)
     ├── binaries (should only exist after build.sh and should be deleted with
     │   └── bin   clean.sh)
     │       └── my_port_binary
@@ -44,8 +45,13 @@ build.sh `strip` everything inside binaries/ folder.
 The clean.sh script is also pretty straightforward: it cleans up everything
 the build.sh script did and leaves the source tree  (from Nanvix) the same as
 it was before, in general, just delete the binaries. (see existing ones for
-reference). The script should delete the binaries/ folder as one of the steps
-of the cleaning process.
+reference). The script should delete the binaries/ folder (and build/ as well,
+if one) as one of the steps of the cleaning process.
+
+### build/
+Temporary folder, stores objects and binary files. This folder basically holds
+the result files after a `./configure`. It is (optionally) created with build.sh
+and must be removed with clean.sh.
 
 ### binaries/
 Temporary folder, holds the final binaries. This folder should _never_ be
