@@ -26,6 +26,30 @@ export HOMEDIR=$(readlink -f $CURDIR/../../../../)
 export TARGET=i386-elf-nanvix
 unset PKG_CONFIG_LIBDIR
 
+# Unset all vars from the root makefile
+#
+# This way, we can safely invoke this script without
+# using Nanvix flags here.
+#
+unset BINDIR
+unset SBINDIR
+unset UBINDIR
+unset DOCDIR
+unset INCDIR
+unset LIBDIR
+unset DOXYDIR
+unset SRCDIR
+unset TOOLSDIR
+unset PORTDIR
+unset CC
+unset LD
+unset AR
+unset CFLAGS
+unset ASMFLAGS
+unset ARFLAGS
+unset LDFLAGS
+unset DBGFLAGS
+
 # TOOLCHAIN_PATH, if not set, lets us set the default value
 if [ -z "$TOOLCHAIN_PATH" ]
 then
