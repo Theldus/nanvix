@@ -1,4 +1,4 @@
-## WHAT IS NANVIX? [![Build Status](https://travis-ci.org/nanvix/nanvix.svg?branch=dev)](https://travis-ci.org/nanvix/nanvix)  [![Join us on Slack!](https://img.shields.io/badge/chat-on%20Slack-e01563.svg)](https://join.slack.com/t/nanvix/shared_invite/enQtMzY2Nzg5OTQ4NTAyLTAxMmYwOGQ0ZmU2NDg2NTJiMWU1OWVkMWJhMWY4NzMzY2E1NTIyMjNiOTVlZDFmOTcyMmM2NDljMTAzOGI1NGY)  
+## WHAT IS NANVIX? [![Build Status](https://api.travis-ci.org/Theldus/nanvix.svg?branch=dev)](https://travis-ci.org/Theldus/nanvix)  [![Join us on Slack!](https://img.shields.io/badge/chat-on%20Slack-e01563.svg)](https://join.slack.com/t/nanvix/shared_invite/enQtMzY2Nzg5OTQ4NTAyLTAxMmYwOGQ0ZmU2NDg2NTJiMWU1OWVkMWJhMWY4NzMzY2E1NTIyMjNiOTVlZDFmOTcyMmM2NDljMTAzOGI1NGY)  
 
 Nanvix is a Unix like operating system created by Pedro H. Penna to
 address emerging manycore platforms. It targets cluster-based
@@ -6,14 +6,55 @@ architectures that rely on a distributed and shared memory
 configuration, and it was designed from scratch to deliver cutting
 edge performance, while enabling backward compatibility with
 existing software. 
-	
+
+## ABOUT THIS FORK
+
+This branch/fork (dev) is a direct fork from [nanvix/monolithic-kernel (master)]
+(https://github.com/nanvix/monolithic-kernel),
+but with some differences that may or not appear in the upstream, some of them:
+
+- No Thread/Multi-Core support (commit `#68b32b5` removed)
+- Focus on LiveCD, with a 'huge' INITRD of 64 MiB
+- New system calls
+- Bug Fixes
+- C/C++ Support
+- OS Specific Toolchain
+- Ported programs:
+  - GCC 6.4.0
+  - Binutils 2.27
+  - more coming soon
+- OR1K not currently supported¹ (checkout `#bdf4f27` for a working version)
+
+However, it is very important to make it clear that I do not intend to start
+a "new project" with this or even 'compete' with the original repository.
+This fork/branch is just a playground where I eventually (very rarely) intend
+to add some things that I think are cool without worrying about upstream.
+
+Therefore, this branch has no guarantees of compatibility with
+nanvix-monolithic although isolated commits should work, with little or no
+change, depending on the subject.
+
+And of course, don't forget to check the related repositories:
+[nanvix/nanvix](https://github.com/nanvix/nanvix),
+[nanvix/monolithic-kernel](https://github.com/nanvix/monolithic-kernel)
+and the Nanvix [organization](https://github.com/nanvix), all the
+development and exciting things are there, ;-).
+
+### Notes:
+¹: The latest changes were more architecture-dependent than I would like,
+and it is complicated to maintain two architectures alone. Therefore,
+support for or1k is not a priority, since its use is limited to virtual
+machines and FPGAs (the latter being absurdly incredible and which
+fortunately I had the opportunity to work with), which sadly few have
+access to.
+
 ## BUILDING AND RUNNING
 
 Nanvix currently supports x86-based PC platforms. You can run it
-either in a real platform or in a real machine.
+either in a real platform or a real machine.
 
 To properly build Nanvix, you need a Linux like programming
-environment, the x86 GNU C Compiler and the x86 GNU Binutils.
+environment, the x86 GNU C Compiler, and the x86 GNU Binutils.
 
 If you are running a Debian-based Linux distribution, you can run
 the following commands.
@@ -21,148 +62,59 @@ the following commands.
 - To clone this repository (default folder name is nanvix):
   ```bash
   $ cd path/to/clone
-  $ git clone --recursive https://github.com/nanvix/nanvix.git -b dev [folder-name]
+  $ git clone https://github.com/Theldus/nanvix.git -b dev [folder-name]
   ```
 
 - To get the development environment setup:
   ```bash
   $ cd path/folder-name
   $ sudo bash tools/dev/setup-toolchain.sh
+  $ sudo bash tools/dev/arch/setup-toolchain-i386.sh
   $ sudo bash tools/dev/setup-qemu.sh
   ```
-  
-  - If using i386 architecture:
-    ```bash
-    $ sudo bash tools/dev/arch/setup-toolchain-i386.sh
-    ```
+Don't forget that after running `setup-toolchain-i386.sh`, you need to
+set up the environment variables in your ~/.bashrc, as informed at the
+end of the script execution, usually something like:
 
-  - If using or1k architecture:
-	```bash
-	$ sudo bash tools/dev/arch/setup-toolchain-or1k.sh
-	```
+```bash
+export TARGET=i386                                                       # Target architecture
+export PATH=$PATH:/usr/local/nanvix-toolchain/bin                        # Toolchain binaries
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/nanvix-toolchain/lib  # MPC, MPFR and GMP
+```
 
 - To build Nanvix:
-  ```bash
+```bash
   $ cd path/folder-name
-  ```
-
-  - If using i386 architecture:
-	```bash
-	$ make nanvix TARGET=i386
-	$ sudo make image TARGET=i386
-	```
-	
-  - If using or1k architecture:
-	```bash
-	$ make nanvix TARGET=or1k
-	$ sudo make image TARGET=or1k
-	```
+  $ make nanvix > /dev/null
+  $ sudo make image
+```
 
 - To run Nanvix on a virtual machine:
   ```bash
   $ cd path/folder-name
-  ```
-
-  - If using i386 architecture:
-	```bash
-	$ export TARGET=i386
-	```
-
-  - If using or1k architecture:
-	```bash
-	$ export TARGET=or1k
-	```
-
-  ```bash
   $ bash tools/run/run-qemu.sh
   ```
-  
-## TIPS
-Some people may feel that those commands to build and run nanvix are a litle tricky or that is annoying to remember every time if `TARGET` was already exported or not. If that is your case, you can always create an function (assigning an alias to it) and put it in your `<.bashrc>`file. In case you don't know how to do that, follow the steps below:
 
-- Open your `<.bashrc>` file with your preference text editor:
-  ```bash
-  $ vim ~/.bashrc
-  ```
-  
-- Add the following lines at the end of `<.bashrc>`file:
-  ```bash
-  # Feel free to modify this function as you wish
-  function __nanvix() {
-      NANVIX_FOLDER="/home/luigidcsoares/dev/nanvix"
-      CURDIR=$(pwd)
+## PORTS
 
-      if [ $CURDIR != $NANVIX_FOLDER ]; then
-	      cd $NANVIX_FOLDER
-      fi
+The programs ported to Nanvix are separated from the main build-tree, so
+to compile them you can:
 
-      target_defined=false
-      build=false
-      run=false
+```bash
+$ cd path/folder-name
+$ make ports # make ports-clean will clean-up your ports environment
+```
+or you may want to do per project:
+```bash
+$ cd path/folder-name/src/ubin/PORTS/ported-program
+$ bash build.sh # bash clean.sh will clean-up your ports environment
+```
 
-      while [ $# -gt 0 ]; do
-          case "$1" in
-              -h|--help)
-                  echo '************** Nanvix script **************'
-                  echo '-h, --help        show an brief help'
-                  echo '--i386, --or1k    set target architecture'
-                  echo '-b, --build       build nanvix and generate its image'
-                  echo '-r, --run         run nanvix'
-                  return 0
-                  ;;
-              --i386)
-                  export TARGET=i386
-                  target_defined=true
-                  shift
-                  ;;
-              --or1k)
-                  export TARGET=or1k
-                  target_defined=true
-                  shift
-                  ;;
-              -b|--build)
-                  build=true
-                  shift
-                  ;;
-              -r|--run)
-                  run=true
-                  shift
-                  ;;
-              *)
-                  echo "ERROR: undefined option!"
-                  return 1
-          esac
-      done
-
-      # Raises error if target wasn't passed by params
-      if [ $target_defined = false ]; then
-          echo "ERROR: target undefined!"
-          return 1
-      fi
-    
-      if [ $build = true ]; then
-          make nanvix TARGET=$TARGET && sudo make image TARGET=$TARGET
-      fi
-    
-      if [ $run = true ]; then
-          bash tools/run/run-qemu.sh
-      fi
-  }
-  alias nanvix=__nanvix
-  ```
-  
-- Save the changes and run the following command on terminal to for the changes take effect:
-  ```bash
-  $ source ~/.bashrc
-  ```
-  
-Now you are able to build and run nanvix with a single command. Following are the options that the above script takes:
-
-- `-h|--help`: show an brief help about all the commands.
-- `--i386`: set target architecture to i386.
-- `--or1k`: set target architecture to or1k.
-- `-b|--build`: build nanvix and generate its image.
-- `-r|--run`: run nanvix.
+after that you can build Nanvix (if not yet) and make an ISO image with:
+```bash
+$ make nanvix > /dev/null
+$ make image
+```
 
 ## LICENSE AND MAINTAINERS
 
