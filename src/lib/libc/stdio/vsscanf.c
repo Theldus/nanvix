@@ -49,8 +49,8 @@
 
 #ifndef _REENT_ONLY
 
-int _vsscanf_r(struct _reent *ptr, const char *restrict str,
-  const char *restrict fmt, va_list ap)
+int _vsscanf_r(struct _reent *ptr, const char * str,
+  const char * fmt, va_list ap)
 {
   FILE f;
 
@@ -73,7 +73,7 @@ int _vsscanf_r(struct _reent *ptr, const char *restrict str,
  *
  * @return Same sscanf return.
  */
-int vsscanf(const char *restrict str, const char *restrict fmt, va_list ap)
+int vsscanf(const char * str, const char * fmt, va_list ap)
 {
   return _vsscanf_r (_REENT, str, fmt, ap);
 }

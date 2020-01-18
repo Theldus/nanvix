@@ -67,7 +67,7 @@
 	#include <limits.h>
 	
  	#ifndef MAXNAMLEN
- 	#define MAXNAMLEN 14
+	#define MAXNAMLEN 30
  	#endif
 
 	/*

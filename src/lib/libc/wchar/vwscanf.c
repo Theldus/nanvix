@@ -58,7 +58,7 @@
  *
  * @return Returns the number of successfully matched and assigned input items.
  */
-int vwscanf(const wchar_t *restrict fmt, va_list ap)
+int vwscanf(const wchar_t * fmt, va_list ap)
 {
   struct _reent *reent = _REENT;
 

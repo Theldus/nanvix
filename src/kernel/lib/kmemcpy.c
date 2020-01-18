@@ -18,6 +18,8 @@
  */
 
 #include <nanvix/const.h>
+#include <nanvix/hal.h>
+#include <nanvix/klib.h>
 #include <sys/types.h>
 
 /**
@@ -31,14 +33,34 @@
  */
 PUBLIC void *kmemcpy (void* dest, const void *src, size_t n)
 {
-    char *d;       /* Write pointer. */
-    const char* s; /* Read pointer.  */
-    
+    char *d;              /* 8-bit write pointer.  */
+    const char* s;        /* 8-bit read pointer.   */
+    addr_t *dalign;       /* 32-bit write pointer. */
+    const addr_t *salign; /* 32-bit read pointer.  */
+
     s = src;
     d = dest;
-    
-    while (n-- > 0)
-    	*d++ = *s++;
- 
+
+    /* Check if the addresses are aligned and at least 1-dword size. */
+    if (n >= sizeof(dword_t) &&
+		ALIGNED(src, sizeof(addr_t)) && ALIGNED(dest, sizeof(addr_t)))
+    {
+		salign = (addr_t *) src;
+		dalign = (addr_t *) dest;
+		
+		while (n >= sizeof(addr_t))
+		{
+			*dalign++ = *salign++;
+			n -= sizeof(addr_t);
+		}
+
+		s = (char *) salign;
+		d = (char *) dalign;
+    }
+
+	/* Remaining bytes if any. */
+	while (n-- > 0)
+		*d++ = *s++;
+
     return (d);
 }

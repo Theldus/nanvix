@@ -41,7 +41,7 @@
 #include "local.h"
 
 int
-_fscanf_r(struct _reent *ptr, FILE *restrict fp, const char *restrict fmt, ...)
+_fscanf_r(struct _reent *ptr, FILE * fp, const char * fmt, ...)
 {
   int ret;
   va_list ap;
@@ -68,7 +68,7 @@ _fscanf_r(struct _reent *ptr, FILE *restrict fp, const char *restrict fmt, ...)
  * EOF is also returned if a read error occurs, in which case the error
  * indicator for the stream is set, and errno is set indicate the error.
  */
-int fscanf(FILE *restrict fp, const char *restrict fmt, ...)
+int fscanf(FILE * fp, const char * fmt, ...)
 {
   int ret;
   va_list ap;

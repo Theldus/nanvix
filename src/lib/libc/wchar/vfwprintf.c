@@ -334,7 +334,7 @@ _EXFUN(get_arg, (struct _reent *data, int n, wchar_t *fmt,
  *
  * @return Returns the number of wide characters transmitted.
  */
-int VFWPRINTF(FILE *restrict fp, const wchar_t *restrict fmt0, va_list ap)
+int VFWPRINTF(FILE * fp, const wchar_t * fmt0, va_list ap)
 {
   int result;
   result = _VFWPRINTF_R (_REENT, fp, fmt0, ap);

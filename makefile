@@ -22,6 +22,9 @@
 # Retrieve the number of processor cores
 num_cores = `grep -c ^processor /proc/cpuinfo`
 
+# Conflicts
+.PHONY: lib
+
 # Directories.
 export BINDIR   = $(CURDIR)/bin
 export SBINDIR  = $(BINDIR)/sbin
@@ -32,11 +35,12 @@ export LIBDIR   = $(CURDIR)/lib
 export DOXYDIR  = $(CURDIR)/doxygen
 export SRCDIR   = $(CURDIR)/src
 export TOOLSDIR = $(CURDIR)/tools
+export PORTDIR  = $(CURDIR)/src/ubin/PORTS
 
 # Toolchain
-export CC = $(TOOLSDIR)/dev/toolchain/$(TARGET)/bin/$(TARGET)-elf-gcc
-export LD = $(TOOLSDIR)/dev/toolchain/$(TARGET)/bin/$(TARGET)-elf-ld
-export AR = $(TOOLSDIR)/dev/toolchain/$(TARGET)/bin/$(TARGET)-elf-ar
+export CC = $(TARGET)-elf-nanvix-gcc
+export LD = $(TARGET)-elf-nanvix-ld
+export AR = $(TARGET)-elf-nanvix-ar
 
 # Random number for chaos.
 export KEY = 13
@@ -58,7 +62,7 @@ export DBGFLAGS += -g -fno-omit-frame-pointer
 .PHONY: tools
 
 # Builds everything.
-all: nanvix documentation
+all: nanvix
 
 # Builds Nanvix.
 ifeq ($(TARGET),i386)
@@ -75,6 +79,14 @@ nanvix: image
 	bash $(TOOLSDIR)/build/build-img.sh --build-iso
 endif
 endif
+
+# Builds Nanvix Newlib's library.
+lib:
+	cd $(SRCDIR) && $(MAKE) -j$(num_cores) lib
+
+# Builds all the Nanvis ported programs
+ports:
+	bash $(PORTDIR)/build.sh
 
 # Builds Nanvix with debug flags.
 nanvix-debug:
@@ -115,3 +127,7 @@ clean:
 	@rm -rf $(DOCDIR)/*-kernel
 	cd $(SRCDIR) && $(MAKE) clean
 	cd $(TOOLSDIR) && $(MAKE) clean
+
+# Cleans all the ported programs
+ports-clean:
+	bash $(PORTDIR)/clean.sh

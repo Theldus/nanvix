@@ -129,8 +129,8 @@ size_t _mbrtowc_r(struct _reent *ptr, wchar_t *pwc, const char *s, size_t n,
  * do not contribute to a complete and valid character (no value is stored).
  * In this case,[EILSEQ] is stored in errno and the conversion state is undefined.
  */
-size_t mbrtowc(wchar_t *restrict pwc, const char *restrict s, size_t n,
-  mbstate_t *restrict ps)
+size_t mbrtowc(wchar_t * pwc, const char * s, size_t n,
+  mbstate_t * ps)
 {
 #if defined(PREFER_SIZE_OVER_SPEED) || defined(__OPTIMIZE_SIZE__)
   return _mbrtowc_r (_REENT, pwc, s, n, ps);

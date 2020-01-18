@@ -83,7 +83,7 @@ extern char *__strtok_r (char *, const char *, char **, int);
  * @return Returns a pointer to the first byte of a token. Otherwise, if
  * there is no token, returns a null pointer.
  */
-char *strtok(register char *restrict s, register const char *restrict delim)
+char *strtok(register char * s, register const char * delim)
 {
 	struct _reent *reent = _REENT;
 

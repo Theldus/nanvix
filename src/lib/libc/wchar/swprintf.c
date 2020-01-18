@@ -96,7 +96,7 @@ int _swprintf_r(struct _reent *ptr, wchar_t *str, size_t size,
  * the terminating null wide character, or a negative value if an output
  * error was encountered, and set errno to indicate the error.
  */
-int swprintf(wchar_t *restrict str, size_t size, const wchar_t *restrict fmt,
+int swprintf(wchar_t * str, size_t size, const wchar_t * fmt,
 	...)
 {
   int ret;

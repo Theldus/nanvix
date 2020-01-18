@@ -64,7 +64,7 @@ int _wprintf_r(struct _reent *ptr, const wchar_t *fmt, ...)
  * @return Returns the number of wide characters transmitted, 
  * or a negative value if an output error was encountered.
  */
-int wprintf(const wchar_t *restrict fmt, ...)
+int wprintf(const wchar_t * fmt, ...)
 {
   int ret;
   va_list ap;

@@ -96,7 +96,7 @@
  * @return Returns a pointer to the terminating NUL character copied into the 
  * @p dst buffer.
  */
-char* stpcpy(char *restrict dst, const char *restrict src)
+char* stpcpy(char * dst, const char * src)
 {
 #if !defined(PREFER_SIZE_OVER_SPEED) && !defined(__OPTIMIZE_SIZE__)
   long *aligned_dst;

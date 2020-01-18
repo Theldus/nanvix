@@ -1,0 +1,108 @@
+diff -ruN old-gcc-6.4.0/config.sub gcc-6.4.0/config.sub
+--- old-gcc-6.4.0/config.sub	2019-12-19 23:11:18.787735611 -0300
++++ gcc-6.4.0/config.sub	2019-12-26 03:08:26.699824565 -0300
+@@ -1375,6 +1375,7 @@
+ 	# -sysv* is not here because it comes later, after sysvr4.
+ 	-gnu* | -bsd* | -mach* | -minix* | -genix* | -ultrix* | -irix* \
+ 	      | -*vms* | -sco* | -esix* | -isc* | -aix* | -cnk* | -sunos | -sunos[34]*\
++	      | -nanvix* \
+ 	      | -hpux* | -unos* | -osf* | -luna* | -dgux* | -auroraux* | -solaris* \
+ 	      | -sym* | -kopensolaris* | -plan9* \
+ 	      | -amigaos* | -amigados* | -msdos* | -newsos* | -unicos* | -aof* \
+diff -ruN old-gcc-6.4.0/fixincludes/mkfixinc.sh gcc-6.4.0/fixincludes/mkfixinc.sh
+--- old-gcc-6.4.0/fixincludes/mkfixinc.sh	2019-12-19 23:11:31.886734953 -0300
++++ gcc-6.4.0/fixincludes/mkfixinc.sh	2019-12-26 03:08:26.699824565 -0300
+@@ -11,6 +11,7 @@
+ 
+ # Check for special fix rules for particular targets
+ case $machine in
++    *-nanvix* | \
+     i?86-*-cygwin* | \
+     i?86-*-mingw32* | \
+     x86_64-*-mingw32* | \
+diff -ruN old-gcc-6.4.0/gcc/config/nanvix.h gcc-6.4.0/gcc/config/nanvix.h
+--- old-gcc-6.4.0/gcc/config/nanvix.h	1969-12-31 21:00:00.000000000 -0300
++++ gcc-6.4.0/gcc/config/nanvix.h	2019-12-30 21:32:02.627872974 -0300
+@@ -0,0 +1,27 @@
++/* Useful if you wish to make target-specific GCC changes. */
++#undef TARGET_NANVIX
++#define TARGET_NANVIX 1
++ 
++/* Default arguments you want when running your
++   i686-myos-gcc/x86_64-myos-gcc toolchain */
++#undef LIB_SPEC
++#define LIB_SPEC "-lc" /* link against C standard library */
++ 
++/* Files that are linked before user code.
++   The %s tells GCC to look for these files in the library directory. */
++#undef STARTFILE_SPEC
++#define STARTFILE_SPEC "crt0.o%s crti.o%s crtbegin.o%s"
++ 
++/* Files that are linked after user code. */
++#undef ENDFILE_SPEC
++#define ENDFILE_SPEC "crtend.o%s crtn.o%s"
++ 
++/* Additional predefined macros. */
++#undef TARGET_OS_CPP_BUILTINS
++#define TARGET_OS_CPP_BUILTINS()      \
++  do {                                \
++    builtin_define ("__nanvix__");    \
++    builtin_define ("__unix__");      \
++    builtin_assert ("system=nanvix"); \
++    builtin_assert ("system=unix");   \
++  } while(0);
+diff -ruN old-gcc-6.4.0/gcc/config.gcc gcc-6.4.0/gcc/config.gcc
+--- old-gcc-6.4.0/gcc/config.gcc	2019-12-19 23:11:27.478735174 -0300
++++ gcc-6.4.0/gcc/config.gcc	2019-12-26 03:08:26.700824566 -0300
+@@ -820,6 +820,11 @@
+   gnu_ld=yes
+   default_use_cxa_atexit=yes
+   ;;
++*-*-nanvix*)
++  gas=yes
++  gnu_ld=yes
++  default_use_cxa_atexit=yes
++  ;;
+ *-*-rtems*)
+   case ${enable_threads} in
+     "" | yes | rtems) thread_file='rtems' ;;
+@@ -1446,6 +1451,9 @@
+     tm_file="${tm_file} i386/unix.h i386/att.h dbxelf.h elfos.h newlib-stdint.h i386/i386elf.h i386/x86-64.h i386/rdos.h i386/rdos64.h"
+     tmake_file="i386/t-i386elf t-svr4"
+     ;;
++*-*-nanvix*)
++	tm_file="${tm_file} i386/unix.h i386/att.h dbxelf.h elfos.h glibc-stdint.h i386/i386elf.h nanvix.h"
++	;;
+ i[34567]86-*-dragonfly*)
+ 	tm_file="${tm_file} i386/unix.h i386/att.h dbxelf.h elfos.h dragonfly.h dragonfly-stdint.h i386/dragonfly.h"
+ 	tmake_file="${tmake_file} i386/t-crtstuff"
+diff -ruN old-gcc-6.4.0/libgcc/config.host gcc-6.4.0/libgcc/config.host
+--- old-gcc-6.4.0/libgcc/config.host	2019-12-19 23:11:18.722735614 -0300
++++ gcc-6.4.0/libgcc/config.host	2019-12-26 03:08:26.701824566 -0300
+@@ -661,6 +661,10 @@
+ 	;;
+ i[4567]86-wrs-vxworks|i[4567]86-wrs-vxworksae)
+ 	;;
++i[34567]86-*-nanvix*)
++	extra_parts="$extra_parts crtbegin.o crtend.o"
++	tmake_file="$tmake_file i386/t-crtstuff t-crtstuff-pic t-libgcc-pic"
++	;;
+ i[34567]86-*-cygwin*)
+ 	extra_parts="crtbegin.o crtbeginS.o crtend.o crtfastmath.o"
+ 	if test x$enable_vtable_verify = xyes; then
+diff -ruN old-gcc-6.4.0/libstdc++-v3/crossconfig.m4 gcc-6.4.0/libstdc++-v3/crossconfig.m4
+--- old-gcc-6.4.0/libstdc++-v3/crossconfig.m4	2019-12-19 23:11:18.711735615 -0300
++++ gcc-6.4.0/libstdc++-v3/crossconfig.m4	2019-12-26 03:08:26.701824566 -0300
+@@ -248,6 +248,12 @@
+     GLIBCXX_CHECK_MATH_SUPPORT
+     GLIBCXX_CHECK_STDLIB_SUPPORT
+     ;;
++  *-nanvix*)
++    GLIBCXX_CHECK_COMPILER_FEATURES
++    GLIBCXX_CHECK_LINKER_FEATURES
++    GLIBCXX_CHECK_MATH_SUPPORT
++    GLIBCXX_CHECK_STDLIB_SUPPORT
++    ;;
+   *-vxworks)
+     AC_DEFINE(HAVE_ACOSF)
+     AC_DEFINE(HAVE_ASINF)

@@ -73,8 +73,12 @@ PUBLIC int dir_remove_minix(struct inode *dinode, const char *filename)
 			return (-EPERM);
 		}
 		
-		/* Directory not empty. */
-		if (dinode->size)
+		/*
+		 * Directory not empty, i.e: if the number
+		 * of entries is greater than 2 ([.], [..], others)
+		 * the folder is not empty.
+		 */
+		if ((file->size/sizeof(struct d_dirent)) > 2)
 		{
 			inode_put(file);
 			brelse(buf);
@@ -245,7 +249,7 @@ PUBLIC ssize_t file_write_minix(struct inode *i, const void *buf, size_t n, off_
 		blkoff = off % BLOCK_SIZE;
 		
 		chunk = (n < BLOCK_SIZE - blkoff) ? n : BLOCK_SIZE - blkoff;
-		kmemcpy((char *)buffer_data(bbuf) + blkoff, buf, chunk);
+		kmemcpy((char *)buffer_data(bbuf) + blkoff, p, chunk);
 		buffer_dirty(bbuf, 1);
 		brelse(bbuf);
 		

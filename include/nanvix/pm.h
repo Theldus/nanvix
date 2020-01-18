@@ -32,7 +32,7 @@
 	#include <nanvix/fs.h>
 	#include <nanvix/hal.h>
 	#include <nanvix/region.h>
- 	#include <i386/fpu.h>
+	#include <i386/fpu.h>
 	#include <i386/pmc.h>
 	#include <sys/types.h>
 	#include <limits.h>
@@ -75,7 +75,7 @@
 	 */
 	/**@{*/
 	#define PROC_QUANTUM 50 /**< Quantum.                  */
-	#define NR_PREGIONS   4 /**< Number of memory regions. */
+	#define NR_PREGIONS   8 /**< Number of memory regions. */
 	/**@}*/
 	
 	/**
@@ -117,8 +117,10 @@
 	#define PROC_KSTACK   20 /**< Kernel stack pointer offset.   */
 	#define PROC_RESTORER 24 /**< Signal restorer.               */
 	#define PROC_HANDLERS 28 /**< Signal handlers offset.        */
-	#define PROC_IRQLVL 120  /**< IRQ Level offset.              */
-	#define PROC_FSS    124  /**< FPU Saved Status offset.       */
+	#define PROC_IRQLVL  120 /**< IRQ Level offset.              */
+	#define PROC_PID     124 /**< Process ID.                    */
+	#define PROC_SYSNR   128 /**< Last syscall nr executed.      */
+	#define PROC_SIMD    132 /**< SIMD Saved Status offset.      */
 	/**@}*/
 
 #ifndef _ASM_FILE_
@@ -141,7 +143,9 @@
     	void (*restorer)(void);            /**< Signal restorer.        */
 		sighandler_t handlers[NR_SIGNALS]; /**< Signal handlers.        */
 		unsigned irqlvl;                   /**< Current IRQ level.      */
-    	struct fpu fss;                    /**< FPU Saved Status.       */
+    	pid_t pid;                         /**< Process ID.             */
+    	int syscall_nr;                    /**< Last syscall number ex. */
+    	struct fpu simd_state;             /**< Current SIMD status.    */
     	struct pmc pmcs;                   /**< PMC status.             */
 		/**@}*/
 
@@ -179,7 +183,6 @@
 		gid_t gid;              /**< Group ID.                */
 		gid_t egid;             /**< Effective group user ID. */
 		gid_t sgid;             /**< Saved set-group-ID.      */
-    	pid_t pid;              /**< Process ID.              */
     	struct process *pgrp;   /**< Process group ID.        */
     	struct process *father; /**< Father process.          */
 		char name[NAME_MAX];    /**< Process name.            */
@@ -227,9 +230,9 @@
 	 */
 	/**@{*/
 	#define TEXT(p)  (&p->pregs[0]) /**< Text region.  */
-	#define DATA(p)  (&p->pregs[1]) /**< Data region.  */
+	#define HEAP(p)  (&p->pregs[1]) /**< Heap region.  */
 	#define STACK(p) (&p->pregs[2]) /**< Stack region. */
-	#define HEAP(p)  (&p->pregs[3]) /**< Heap region.  */
+	#define DATA(p)  (&p->pregs[3]) /**< Data region.  */
 	/**@}*/
 	
 	/**

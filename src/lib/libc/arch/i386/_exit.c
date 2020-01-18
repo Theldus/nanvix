@@ -21,11 +21,17 @@
 #include <unistd.h>
 #include <errno.h>
 
+/* Forward definitions. */
+extern void _fini(void);
+
 /*
  * Terminates the calling process.
  */
 void _exit(int status)
 {
+	/* Call _fini. */
+	_fini();
+
 	__asm__ volatile(
 		"int $0x80"
 		: /* empty. */

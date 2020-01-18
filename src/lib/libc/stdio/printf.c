@@ -41,7 +41,7 @@
 #include <stdarg.h>
 #include "local.h"
 
-int _printf_r(struct _reent *ptr, const char *restrict fmt, ...)
+int _printf_r(struct _reent *ptr, const char * fmt, ...)
 {
   int ret;
   va_list ap;
@@ -63,7 +63,7 @@ int _printf_r(struct _reent *ptr, const char *restrict fmt, ...)
  *
  * @return Returns the number of bytes transmitted.
  */
-int printf(const char *restrict fmt, ...)
+int printf(const char * fmt, ...)
 {
   int ret;
   va_list ap;

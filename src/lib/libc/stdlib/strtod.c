@@ -1203,7 +1203,7 @@ _DEFUN (_strtod_r, (ptr, s00, se),
  * @return Returns the converted value. If no conversion
  * could be performed, 0 is returned.
  */
-double strtod(const char *restrict s00, char **restrict se)
+double strtod(const char * s00, char ** se)
 {
   return _strtod_r (_REENT, s00, se);
 }
@@ -1217,7 +1217,7 @@ double strtod(const char *restrict s00, char **restrict se)
  * @return Returns the converted value. If no conversion
  * could be performed, 0 is returned.
  */
-float strtof(const char *restrict s00, char **restrict se)
+float strtof(const char * s00, char ** se)
 {
   double retval = _strtod_r (_REENT, s00, se);
   if (isnan (retval))

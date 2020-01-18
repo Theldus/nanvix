@@ -24,7 +24,8 @@ DIST=$(uname -rv)
 
 case ${DIST,,} in
     *"ubuntu"*|*"debian"*)
-        apt-get install g++ ddd genisoimage texinfo flex bison libncurses5-dev -y
+        apt-get install g++ ddd genisoimage texinfo flex bison libncurses5-dev \
+			dos2unix make -y
         ;;
     *"arch"*)
         pacman -S gcc cdrtools texinfo flex bison ncurses --needed

@@ -18,6 +18,10 @@
 # along with Nanvix.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+# Paths
+CURDIR="$( cd "$(dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+PORTS_DIR=$(readlink -f $CURDIR/../../src/ubin/PORTS)
+
 # Root credentials.
 ROOTUID=0
 ROOTGID=0
@@ -26,11 +30,14 @@ ROOTGID=0
 NOOBUID=1
 NOOBUID=1
 
-LOOP=$(losetup -f)
+[[ $(id -u) -eq 0 ]] && LOOP=$(losetup -f)
+
+# HD Image?
+BUILD_HD_IMAGE=0
 
 # Toolchain
-STRIP=$TOOLSDIR/dev/toolchain/$TARGET/bin/$TARGET-elf-strip
-OBJCOPY=$TOOLSDIR/dev/toolchain/$TARGET/bin/$TARGET-elf-objcopy
+STRIP=$TARGET-elf-nanvix-strip
+OBJCOPY=$TARGET-elf-nanvix-objcopy
 
 # Checks if TARGET is OR1K, if so, use Qemu
 if [ "$TARGET" = "or1k" ];
@@ -97,6 +104,56 @@ function format {
 }
 
 #
+# Copy a given folder (and its files) to a root directory disk image.
+#   $1 Disk image name.
+#   $2 Target Folder
+#
+function copy_folder
+{
+	disk="$1"
+	folder="$2"
+
+	# Seems like mkdir.minix do not works well with leading '/'
+	# lets check and remove if any
+	if [ "${folder: -1}" = "/" ];
+	then
+		folder=${folder%?}
+	fi
+
+	complete_path=$(readlink -f "$folder")
+	basefolder=$(basename "$folder")
+	prefix=$(dirname "$complete_path")
+
+	# Make directories first
+	find "$complete_path" -type d -print0 | while read -d $'\0' cfolder
+	do
+		newpath=${cfolder#"$prefix"}
+		if [ "${newpath:0:1}" != "/" ];
+		then
+			newpath="/$newpath"
+		fi
+
+		echo "Creating $newpath folder..."
+		$QEMU_VIRT bin/mkdir.minix "$disk" "$newpath" "$ROOTUID" "$ROOTGID"
+	done
+	echo ""
+
+	# Copy files
+	find "$complete_path" -type f -print0 | while read -d $'\0' cfolder
+	do
+		newpath=${cfolder#"$prefix"}
+		if [ "${newpath:0:1}" != "/" ];
+		then
+			newpath="/$newpath"
+		fi
+
+		echo "Copying $cfolder file into $newpath..."
+		$QEMU_VIRT bin/cp.minix "$disk" "$cfolder" "$newpath" "$ROOTUID" "$ROOTGID"
+	done
+	echo ""
+}
+
+#
 # Copy files to a disk image.
 #   $1 Target disk image.
 #
@@ -122,6 +179,25 @@ function copy_files
 			$QEMU_VIRT bin/cp.minix $1 $file /bin/$filename $ROOTUID $ROOTGID
 		fi;
 	done
+
+	# For each folder in the PORTS directory, copy those that have
+	# the 'binaries' folder into the disk image
+	for folder in $(ls -d $PORTS_DIR/*)
+	do
+		# Skip folders that do not contains the 'binaries' folder inside
+		if [ ! -d "$folder/binaries" ]
+		then
+			continue
+		fi
+
+		echo "Copying $(basename $folder) port into initrd..."
+
+		# Iterate over each folder and copy them into the disk image
+		for targ_folder in $(ls -d $folder/binaries/*)
+		do
+			copy_folder initrd.img $targ_folder
+		done
+	done
 }
 
 #
@@ -131,11 +207,12 @@ function copy_files
 #
 function strip_binary
 {
+	mkdir -p $BINDIR/symbols/bin/{sbin,ubin}
 	if [[ "$1" != *.sym ]]; then
 		# Get debug symbols from kernel
-		$OBJCOPY --only-keep-debug $1 $1.sym
+		$OBJCOPY --only-keep-debug $1 $BINDIR/symbols/$1.sym
 		# Remove debug symbols
-		$STRIP --strip-debug --strip-unneeded $1
+		$STRIP --strip-debug $1
 	fi;
 }
 
@@ -176,19 +253,22 @@ else
 	done
 
 	# Build HDD image.
-	dd if=/dev/zero of=hdd.img bs=1024 count=65536
-	format hdd.img 1024 32768
-	copy_files hdd.img
+	if [ "$BUILD_HD_IMAGE" -eq 1 ];
+	then
+		dd if=/dev/zero of=hdd.img bs=1024 count=65536
+		format hdd.img 1024 32768
+		copy_files hdd.img
+	fi
 
 	# Build initrd image.
-	dd if=/dev/zero of=initrd.img bs=1024 count=2048
-	format initrd.img 512 2048
+	dd if=/dev/zero of=initrd.img bs=1024 count=65536
+	format initrd.img 1024 64535
 	copy_files initrd.img
 	initrdsize=`stat -c %s initrd.img`
-	maxsize=`grep "INITRD_SIZE" include/nanvix/config.h | cut -d" " -f 13`
+	maxsize=`grep "INITRD_SIZE" include/nanvix/config.h | grep -Po "(0x[0-9]+|[0-9]+)"`
 	maxsize=`printf "%d\n" $maxsize`
 	if [ $initrdsize -gt $maxsize ]; then
-		echo "NOT ENOUGH SPACE ON INITRD"
+		echo "NOT ENOUGH SPACE ON INITRD, size: $initrdsize / maxsize: $maxsize"
 		echo "INITRD SIZE is $initrdsize"
 		rm *.img
 		exit -1

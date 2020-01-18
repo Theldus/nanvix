@@ -1,0 +1,52 @@
+diff -ruN old-binutils-2.27/binutils/bfdtest2.c binutils-2.27/binutils/bfdtest2.c
+--- old-binutils-2.27/binutils/bfdtest2.c	2019-12-19 23:10:58.506736630 -0300
++++ binutils-2.27/binutils/bfdtest2.c	2019-12-19 23:33:11.542669649 -0300
+@@ -18,6 +18,12 @@
+    Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+    MA 02110-1301, USA.  */
+ 
++/*
++ * Nanvix Newlib requires _POSIX_C_SOURCE in order
++ * to export some functions.
++ */
++#define _POSIX_C_SOURCE 1
++
+ #include "sysdep.h"
+ #include "bfd.h"
+ 
+diff -ruN old-binutils-2.27/binutils/rename.c binutils-2.27/binutils/rename.c
+--- old-binutils-2.27/binutils/rename.c	2019-12-19 23:10:58.509736630 -0300
++++ binutils-2.27/binutils/rename.c	2019-12-19 23:32:04.378673023 -0300
+@@ -122,6 +122,14 @@
+     non_fatal (_("%s: cannot set time: %s"), destination, strerror (errno));
+ }
+ 
++/*
++ * Nanvix do not have lstat syscall, so lets undef
++ * the following and binutils will nicely use stat
++ * instead ;-).
++ */
++#undef S_ISLNK
++#undef S_IFLNK
++
+ #ifndef S_ISLNK
+ #ifdef S_IFLNK
+ #define S_ISLNK(m) (((m) & S_IFMT) == S_IFLNK)
+diff -ruN old-binutils-2.27/libiberty/unlink-if-ordinary.c binutils-2.27/libiberty/unlink-if-ordinary.c
+--- old-binutils-2.27/libiberty/unlink-if-ordinary.c	2019-12-19 23:10:58.823736614 -0300
++++ binutils-2.27/libiberty/unlink-if-ordinary.c	2019-12-19 23:32:04.392673023 -0300
+@@ -50,6 +50,14 @@
+ 
+ #include "libiberty.h"
+ 
++/*
++ * Nanvix do not have lstat syscall, so lets undef
++ * the following and binutils will nicely use stat
++ * instead ;-).
++ */
++#undef S_ISLNK
++#undef S_IFLNK
++
+ #ifndef S_ISLNK
+ #ifdef S_IFLNK
+ #define S_ISLNK(m) (((m) & S_IFMT) == S_IFLNK)

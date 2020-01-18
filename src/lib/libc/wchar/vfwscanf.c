@@ -193,7 +193,7 @@ static void * get_arg (int, va_list *, int *, void **);
  *
  * @return Returns the number of successfully matched and assigned input items.
  */
-int VFWSCANF(register FILE *restrict fp, const wchar_t *__restrict fmt,
+int VFWSCANF(register FILE * fp, const wchar_t *__restrict fmt,
 	va_list ap)
 {
   struct _reent *reent = _REENT;

@@ -94,7 +94,7 @@
  *
  * @return Returns @p s1.
  */
-char * strncat(char *restrict s1, const char *restrict s2, size_t n)
+char * strncat(char * s1, const char * s2, size_t n)
 {
 #if defined(PREFER_SIZE_OVER_SPEED) || defined(__OPTIMIZE_SIZE__)
   char *s = s1;

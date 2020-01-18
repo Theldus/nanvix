@@ -80,17 +80,17 @@
 #endif
 
 #ifdef __need_NULL
-#ifndef __null
-#define __null
 
-	/**
-	 * @brief Null pointer.
-	 */
-	#define NULL ((void *) 0)
-
+ 	/**
+ 	 * @brief Null pointer.
+ 	 */
+#	ifndef __cplusplus
+#		define NULL ((void *)0)
+#	else
+#		define NULL 0
+#	endif
+ 
 #endif
-#endif
-
 
 #ifdef __need_size_t
 #ifndef __size_t

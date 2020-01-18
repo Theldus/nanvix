@@ -21,7 +21,7 @@
 
 #Newlib defines
 export CFLAGS += -DSIGNAL_PROVIDED
-export CFLAGS += -DMISSING_SYSCALL_NAMES -D_POSIX_C_SOURCE
+export CFLAGS += -DMISSING_SYSCALL_NAMES -D_POSIX_C_SOURCE -D_FVWRITE_IN_STREAMIO
 export CFLAGS += -U__STRICT_ANSI__
 
 # C source files.
@@ -57,6 +57,7 @@ C_SRC = $(wildcard *.c)            \
 
 # Assembly source files.
 ASM_SRC = $(wildcard arch/$(TARGET)/*.S) \
+		  $(wildcard *.S)                \
 
 # Object files.
 OBJ = $(ASM_SRC:.S=.o) \

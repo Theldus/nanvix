@@ -216,7 +216,7 @@
 /**
  * @brief Maximum number of bytes in a filename.
  */
-#define NAME_MAX 14
+#define NAME_MAX 30
 
 /* Files that one process can have open simultaneously. */
 #define OPEN_MAX 20

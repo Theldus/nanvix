@@ -28,28 +28,28 @@
 /*
  * Bad KPOOL_PHYS ?
  */
-#if ((KBASE_PHYS + KMEM_SIZE) != KPOOL_PHYS)
+#if ((INITRD_SIZE + KPOOL_SIZE + (1 << PGTAB_SHIFT)) != KPOOL_PHYS)
 	#error "bad KPOOL_PHYS"
 #endif
 
 /*
  * Bad UBASE_PHYS ?
  */
-#if ((KBASE_PHYS + KMEM_SIZE + KPOOL_SIZE) != UBASE_PHYS)
+#if ((KPOOL_PHYS + KPOOL_SIZE) != UBASE_PHYS)
 	#error "bad UBASE_PHYS"
 #endif
 
 /*
  * Bad KPOOL_VIRT ?
  */
-#if ((KBASE_VIRT + KMEM_SIZE) != KPOOL_VIRT)
+#if ((INITRD_VIRT + INITRD_SIZE + (1 << PGTAB_SHIFT)) != KPOOL_VIRT)
 	#error "bad KPOOL_VIRT"
 #endif
 
 /*
  * Bad INITRD_VIRT ?
  */
-#if ((KBASE_VIRT + KMEM_SIZE + KPOOL_SIZE) != INITRD_VIRT)
+#if (KPOOL_VIRT < INITRD_VIRT)
 	#error "bad INITRD_VIRT"
 #endif
 
@@ -70,8 +70,8 @@
 /**
  * Too large INITRD?
  */
-#if (INITRD_SIZE > PGTAB_SIZE)
- 	#error "initrd too large"
+#if ((INITRD_SIZE % PGTAB_SIZE) != 0)
+ 	#error "INITRD_SIZE should be multiple of PGTAB_SIZE"
 #endif
 
 /* Buffers virt. */

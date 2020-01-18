@@ -24,41 +24,20 @@
 
 	#include <nanvix/const.h>
 
-	#include <stdint.h>
-
-	/**
-	 * @brief FPU register width.
-	 */
-	#define FPU_REGISTER_WIDTH 5
+	/* Forward definitions. */
+	struct process;
 
 	/**
 	 * @brief FPU state.
 	 */
 	struct fpu
 	{
-		uint16_t cw;                      /** Control Word.        */
-		uint16_t un1;                     /** Unused.              */
-		uint16_t sw;                      /** Status Word.         */
-		uint16_t un2;                     /** Unused.              */
-		uint16_t tw;                      /** Tag Word.            */
-		uint16_t un3;                     /** Unused.              */
-		uint32_t fip;                     /** Instruction Pointer. */
-		uint16_t fcs;                     /** Code Segment.        */
-		uint16_t un4;                     /** Unused.              */
-		uint32_t foo;                     /** Operand Address.     */
-		uint16_t fds;                     /** Data Segment.        */
-		uint16_t un5;                     /** Unused.              */
-		uint16_t st0[FPU_REGISTER_WIDTH]; /** ST(0) register.      */
-		uint16_t st1[FPU_REGISTER_WIDTH]; /** ST(1) register.      */
-		uint16_t st2[FPU_REGISTER_WIDTH]; /** ST(2) register.      */
-		uint16_t st3[FPU_REGISTER_WIDTH]; /** ST(3) register.      */
-		uint16_t st4[FPU_REGISTER_WIDTH]; /** ST(4) register.      */
-		uint16_t st5[FPU_REGISTER_WIDTH]; /** ST(5) register.      */
-		uint16_t st6[FPU_REGISTER_WIDTH]; /** ST(6) register.      */
-		uint16_t st7[FPU_REGISTER_WIDTH]; /** ST(7) register.      */
+		char dummy[512];
 	} __attribute__((packed));
 
 	EXTERN void fpu_init(void);
+	EXTERN void fpu_save(struct process *);
+	EXTERN void fpu_restore(struct process *);
 
 #endif /* _ASM_FILE_ */
 #endif /* FPU_H_ */

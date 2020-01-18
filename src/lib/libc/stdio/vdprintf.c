@@ -31,7 +31,7 @@
 #include <stdarg.h>
 #include "local.h"
 
-int _vdprintf_r(struct _reent *ptr, int fd, const char *restrict format,
+int _vdprintf_r(struct _reent *ptr, int fd, const char * format,
   va_list ap)
 {
   char *p;
@@ -61,7 +61,7 @@ int _vdprintf_r(struct _reent *ptr, int fd, const char *restrict format,
  *
  * @return Same dprintf return.
  */
-int vdprintf(int fd, const char *restrict format, va_list ap)
+int vdprintf(int fd, const char * format, va_list ap)
 {
   return _vdprintf_r (_REENT, fd, format, ap);
 }

@@ -45,8 +45,8 @@ static char sccsid[] = "%W% (Berkeley) %G%";
 #include <sys/lock.h>
 #include "local.h"
 
-FILE *_fopen_r(struct _reent *ptr, const char *restrict file,
-  const char *restrict mode)
+FILE *_fopen_r(struct _reent *ptr, const char * file,
+  const char * mode)
 {
   register FILE *fp;
   register int f;

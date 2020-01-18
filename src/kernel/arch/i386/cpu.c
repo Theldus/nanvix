@@ -21,6 +21,29 @@
 #include <i386/fpu.h>
 #include <i386/pmc.h>
 
+/**
+ * Grabs CPU information from x86.
+ * @param eax EAX register.
+ * @param ebx EBX register.
+ * @param ecx ECX register.
+ * @param edx EDX register.
+ */
+PUBLIC void cpuid(
+	unsigned *eax, unsigned *ebx,
+	unsigned *ecx, unsigned *edx
+)
+{
+	__asm__ __volatile__
+	(
+		"cpuid"
+		: "=a" (*eax),
+		  "=b" (*ebx),
+		  "=c" (*ecx),
+		  "=d" (*edx)
+		: "0" (*eax), "2" (*ecx)
+	);
+}
+
 /*
  * @brief Initializes the CPU resources.
  */

@@ -63,8 +63,8 @@
  * Ignores `locale' stuff.  Assumes that the upper and lower case
  * alphabets and digits are each contiguous.
  */
-unsigned long _strtoul_r(struct _reent *rptr, const char *restrict nptr,
-	char **restrict endptr, int base)
+unsigned long _strtoul_r(struct _reent *rptr, const char * nptr,
+	char ** endptr, int base)
 {
 	register const unsigned char *s = (const unsigned char *)nptr;
 	register unsigned long acc;
@@ -131,7 +131,7 @@ unsigned long _strtoul_r(struct _reent *rptr, const char *restrict nptr,
  * @return Returns the converted value. If no conversion
  * could be performed, 0 is returned.
  */
-unsigned long strtoul(const char *restrict s, char **restrict ptr, int base)
+unsigned long strtoul(const char * s, char ** ptr, int base)
 {
 	return _strtoul_r (_REENT, s, ptr, base);
 }

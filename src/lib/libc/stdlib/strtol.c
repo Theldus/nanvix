@@ -64,8 +64,8 @@
  * Ignores `locale' stuff.  Assumes that the upper and lower case
  * alphabets and digits are each contiguous.
  */
-long _strtol_r(struct _reent *rptr, const char *restrict nptr,
-	char **restrict endptr, int base)
+long _strtol_r(struct _reent *rptr, const char * nptr,
+	char ** endptr, int base)
 {
 	register const unsigned char *s = (const unsigned char *)nptr;
 	register unsigned long acc;
@@ -153,7 +153,7 @@ long _strtol_r(struct _reent *rptr, const char *restrict nptr,
  * @return Returns the converted value. If no conversion
  * could be performed, 0 is returned.
  */
-long strtol(const char *restrict s, char **restrict ptr, int base)
+long strtol(const char * s, char ** ptr, int base)
 {
 	return _strtol_r (_REENT, s, ptr, base);
 }

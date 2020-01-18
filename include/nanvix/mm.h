@@ -25,20 +25,51 @@
 	#include <nanvix/pm.h>
 	#include <sys/types.h>
 	
+	/**
+	 * Nanvix Memory Layout notes:
+	 *
+	 * Some terms:
+	 * The term 'identity mapping' will be used here to also
+	 * indicate when the physical address can be obtained
+	 * by substracting KBASE_VIRT (i.e: 0xc000 0000).
+	 *
+	 * Dots indicate zeroes at right of the number until complete
+	 * 32-bit unsigned wide, thus: 0xc000 0000 can be written as
+	 * '0xc0...'.
+	 *
+	 * The following memory layout follows the notes below:
+	 * - INITRD_VIRT _must_ be identity mapped with INITRD_PHYS
+	 *
+	 * - KPOOL_VIRT _should_ be placed after INITRD_VIRT _and_
+	 *   after CMD_LINE, which occupies 4MiB. (CMD_LINE will be
+	 *   mapped right after INITRD. (see boot.S for details).
+	 *   Thus, 0xc0... + 0x050... + 0x004...
+	 *
+	 * - SERIAL_VIRT should be placed KPOOL_SIZE MiB after KPOOL_VIRT.
+	 *   KPOOL_SIZE occupies 16MiB.
+	 *
+	 * - UBASE_PHYS _should_ be placed KPOOL_SIZE MiB after
+	 *   KPOOL_PHYS.
+	 *
+	 * - CMD_LINE/KCML_SIZE mapps to the command line options passed
+	 *   by boot and is only used during the kmain(). Afterwards, it's
+	 *   usage is no longer needed.
+	 */
+
 	/* Kernel stack size. */
 	#define KSTACK_SIZE PAGE_SIZE
 
 	/* Virtual memory layout. */
 	#define UBASE_VIRT   0x02000000 /* User base.        */
 	#define KBASE_VIRT   0xc0000000 /* Kernel base.      */
-	#define KPOOL_VIRT   0xc1000000 /* Kernel page pool. */
-	#define INITRD_VIRT  0xc2000000 /* Initial RAM disk. */
-	#define SERIAL_VIRT  0xc4000000 /* Serial port.      */
+	#define INITRD_VIRT  0xc1000000 /* Initial RAM disk. */
+	#define KPOOL_VIRT   0xc5400000 /* Kernel page pool. */
+	#define SERIAL_VIRT  0xc6400000 /* Serial port.      */
 	
 	/* Physical memory layout. */
 	#define KBASE_PHYS   0x00000000 /* Kernel base.      */
-	#define KPOOL_PHYS   0x01000000 /* Kernel page pool. */
-	#define UBASE_PHYS   0x02000000 /* User base.        */
+	#define KPOOL_PHYS   0x05400000 /* Kernel page pool. */
+	#define UBASE_PHYS   0x06400000 /* User base.        */
 	
 	/* User memory layout. */
 	#define USTACK_ADDR 0xc0000000 /* User stack. */
@@ -50,8 +81,16 @@
 	/* Kernel page pool size: 16 MB. */
 	#define KPOOL_SIZE 0x01000000
 	
+	/* Kernel command line size: 4MB, (yeah, waste of space). */
+	#define KCMDL_SIZE 0x00400000
+
 	/* User memory size. */
-	#define UMEM_SIZE (MEMORY_SIZE - KMEM_SIZE - KPOOL_SIZE)
+	#define UMEM_SIZE (MEMORY_SIZE - \
+		KMEM_SIZE   - \
+		KPOOL_SIZE  - \
+		INITRD_SIZE - \
+		KCMDL_SIZE    \
+	)
 
 	/**
 	 * @brief Asserts if an address lies on kernel space.

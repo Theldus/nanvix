@@ -18,6 +18,8 @@
  */
 
 #include <nanvix/const.h>
+#include <nanvix/hal.h>
+#include <nanvix/klib.h>
 #include <sys/types.h>
 
 /**
@@ -32,12 +34,34 @@
 PUBLIC void *kmemset(void *ptr, int c, size_t n)
 {
     unsigned char *p;
-    
+    addr_t *addr;
+   	dword_t buff;
+
     p = ptr;
-    
-    /* Set bytes. */
-    while (n-- > 0)
+
+    /* Copy until address be aligned. */
+    while (!ALIGNED(p, sizeof(addr_t)))
+    {
+    	if (n--)
+			*p++ = (unsigned char) c;
+		else
+			return (ptr);
+	}
+
+	/* Copy 4-bytes at a time. */
+	buff = (c << 24) | (c << 16) | (c << 8) | c;
+	addr = (addr_t *)p;
+
+	while (n >= sizeof(addr_t))
+	{
+		*addr++ = buff;
+		n -= sizeof(addr_t);
+	}
+
+	/* Copy remaining bytes if any. */
+	p = (unsigned char *)addr;
+	while (n-- > 0)
 		*p++ = (unsigned char) c;
 
-    return (ptr);	
+	return (ptr);	
 }

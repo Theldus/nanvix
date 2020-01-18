@@ -334,7 +334,7 @@ _DEFUN(_fmemopen_r, (ptr, buf, size, mode),
  * the stream. Otherwise, a null pointer is returned,
  * and errno is set to indicate the error.
  */
-FILE *fmemopen(void *restrict buf, size_t size, const char *restrict mode)
+FILE *fmemopen(void * buf, size_t size, const char * mode)
 {
   return _fmemopen_r (_REENT, buf, size, mode);
 }

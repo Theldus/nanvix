@@ -35,7 +35,7 @@
 	#include <semaphore.h>
 
 	/* Number of system calls. */
-	#define NR_SYSCALLS 58
+	#define NR_SYSCALLS 59
 	
 	/* System call numbers. */
 	#define NR_alarm     0
@@ -89,16 +89,17 @@
  	#define NR_time	    48
  	#define NR_mount    49
  	#define NR_unmount  50
- 	#define NR_mkfs		  51
-  #define NR_semopen  52
+ 	#define NR_mkfs     51
+	#define NR_semopen  52
 	#define NR_semclose 53
 	#define NR_semunlink 54
 	#define NR_semwait  55
 	#define NR_sempost  56
 	#define NR_acct     57
- 	#define NR_semget   58
- 	#define NR_semctl   59
- 	#define NR_semop    60
+	#define NR_rmdir    58
+ 	#define NR_semget   59
+ 	#define NR_semctl   60
+ 	#define NR_semop    61
 
 #ifndef _ASM_FILE_
 
@@ -305,6 +306,9 @@
 
 	/* Unlock a semaphore */
 	EXTERN int sys_sempost(int idx);
+	
+	/* Removes an empty directory. */
+	EXTERN int sys_rmdir(const char *path);
 
 #endif /* _ASM_FILE_ */
 

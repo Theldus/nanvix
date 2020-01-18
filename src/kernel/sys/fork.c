@@ -78,7 +78,7 @@ found:
 		preg = &curr_proc->pregs[i];
 		
 		/* Process region not in use. */
-		if (preg->reg == NULL)
+		if (preg == NULL || preg->reg == NULL)
 			continue;	
 			
 		lockreg(preg->reg);
@@ -109,7 +109,7 @@ found:
 	proc->intlvl = 1;
 	proc->received = 0;
 	proc->restorer = curr_proc->restorer;
-	kmemcpy(&proc->fss, &curr_proc->fss, sizeof(struct fpu));
+	kmemcpy(&proc->simd_state, &curr_proc->simd_state, sizeof(proc->simd_state));
 	for (i = 0; i < NR_SIGNALS; i++)
 		proc->handlers[i] = curr_proc->handlers[i];
 	proc->irqlvl = curr_proc->irqlvl;

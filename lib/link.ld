@@ -30,9 +30,12 @@ SECTIONS
 	. = 0x10000000;
 
     .data ALIGN(4194304):
-    {
+    { 
         *(.data)
+     . = ALIGN(4096);
         *(.rodata)
+     . = ALIGN(4096);
         *(.bss)
+     . = ALIGN(4096);
     }
 }

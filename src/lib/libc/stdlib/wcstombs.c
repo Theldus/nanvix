@@ -82,7 +82,7 @@
  * the number of bytes stored in the character array, not including
  * any terminating null byte.
  */
-size_t wcstombs(char *restrict s, const wchar_t *restrict pwcs, size_t n)
+size_t wcstombs(char * s, const wchar_t * pwcs, size_t n)
 {
 #ifdef _MB_CAPABLE
   mbstate_t state;

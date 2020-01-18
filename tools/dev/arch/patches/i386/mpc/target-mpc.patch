@@ -1,0 +1,12 @@
+diff -ruN old-mpc-0.8.1/config.sub mpc-0.8.1/config.sub
+--- old-mpc-0.8.1/config.sub	2009-03-19 14:45:05.000000000 -0300
++++ mpc-0.8.1/config.sub	2019-12-26 02:43:30.556669891 -0300
+@@ -1239,7 +1239,7 @@
+ 	      | -*vms* | -sco* | -esix* | -isc* | -aix* | -sunos | -sunos[34]*\
+ 	      | -hpux* | -unos* | -osf* | -luna* | -dgux* | -solaris* | -sym* \
+ 	      | -amigaos* | -amigados* | -msdos* | -newsos* | -unicos* | -aof* \
+-	      | -aos* \
++	      | -aos* | -nanvix* \
+ 	      | -nindy* | -vxsim* | -vxworks* | -ebmon* | -hms* | -mvs* \
+ 	      | -clix* | -riscos* | -uniplus* | -iris* | -rtu* | -xenix* \
+ 	      | -hiux* | -386bsd* | -knetbsd* | -mirbsd* | -netbsd* \

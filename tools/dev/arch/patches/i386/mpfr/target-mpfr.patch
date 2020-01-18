@@ -1,0 +1,12 @@
+diff -ruN old-mpfr-2.4.2/config.sub mpfr-2.4.2/config.sub
+--- old-mpfr-2.4.2/config.sub	2009-11-29 23:44:02.000000000 -0300
++++ mpfr-2.4.2/config.sub	2019-12-26 02:48:58.102703753 -0300
+@@ -1271,7 +1271,7 @@
+ 	      | -hpux* | -unos* | -osf* | -luna* | -dgux* | -solaris* | -sym* \
+ 	      | -kopensolaris* \
+ 	      | -amigaos* | -amigados* | -msdos* | -newsos* | -unicos* | -aof* \
+-	      | -aos* | -aros* \
++	      | -aos* | -aros* | -nanvix* \
+ 	      | -nindy* | -vxsim* | -vxworks* | -ebmon* | -hms* | -mvs* \
+ 	      | -clix* | -riscos* | -uniplus* | -iris* | -rtu* | -xenix* \
+ 	      | -hiux* | -386bsd* | -knetbsd* | -mirbsd* | -netbsd* \

@@ -72,7 +72,7 @@
  * @return Returns the length of the transformed string (not 
  * including the terminating NUL character).
  */
-size_t strxfrm(char *restrict s1, const char *restrict s2, size_t n)
+size_t strxfrm(char * s1, const char * s2, size_t n)
 {
   size_t res;
   res = 0;

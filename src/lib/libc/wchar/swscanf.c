@@ -56,7 +56,7 @@
  * @return Returns the number of successfully matched and assigned input
  * items; this number can be zero in the event of an early matching failure.
  */
-int swscanf(const wchar_t *restrict str, const wchar_t *restrict fmt, ...)
+int swscanf(const wchar_t * str, const wchar_t * fmt, ...)
 {
   int ret;
   va_list ap;

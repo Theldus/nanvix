@@ -62,7 +62,7 @@
  * @return Returns a pointer to the located wide-character string, or a 
  * null pointer if the wide-character string is not found.
  */
-wchar_t *wcsstr(const wchar_t *restrict big, const wchar_t *restrict little)
+wchar_t *wcsstr(const wchar_t * big, const wchar_t * little)
 {
   const wchar_t *p;
   const wchar_t *q;

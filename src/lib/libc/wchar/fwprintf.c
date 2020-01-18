@@ -60,7 +60,7 @@ int _fwprintf_r(struct _reent *ptr, FILE *fp, const wchar_t *fmt, ...)
  *
  * @return Returns the number of wide characters transmitted.
  */
-int fwprintf(FILE *restrict fp, const wchar_t *restrict fmt, ...)
+int fwprintf(FILE * fp, const wchar_t * fmt, ...)
 {
   int ret;
   va_list ap;

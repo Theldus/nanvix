@@ -669,6 +669,132 @@ int fpu_test(void)
 }
 
 /*============================================================================*
+ *								 SIMD test									  *
+ *============================================================================*/
+
+#ifdef i386
+/**
+ * Grabs CPU information from x86.
+ * @param eax EAX register.
+ * @param ebx EBX register.
+ * @param ecx ECX register.
+ * @param edx EDX register.
+ */
+static void cpuid(
+	unsigned *eax, unsigned *ebx,
+	unsigned *ecx, unsigned *edx
+)
+{
+	__asm__ __volatile__
+	(
+		"cpuid"
+		: "=a" (*eax),
+		  "=b" (*ebx),
+		  "=c" (*ecx),
+		  "=d" (*edx)
+		: "0" (*eax), "2" (*ecx)
+	);
+}
+#endif
+
+/**
+ * @brief Test if the SIMD context is saved between
+ * context switch.
+ *
+ * @return Returns 0 if the context can be saved
+ * and 1 (failed) otherwise.
+ */
+int simd_test(void)
+{
+#if defined(i386)
+	pid_t pid;                   /* Child pid value. */
+	unsigned eax, ebx, ecx, edx; /* Registers.       */
+	int value;                   /* Sum.             */
+
+	#define NUM_VALUES 8
+
+	/* Check if SSE support in runtime. */
+	eax = 1;
+	cpuid(&eax, &ebx, &ecx, &edx);
+	if (!(edx & (1 << 25)))
+	{
+		printf("Current CPU do not support SSE!\n");
+		return (-1);
+	}
+	
+	/* Fill all the XMM0-7 registers with values from 1 to 8. */
+	value = 1;
+	__asm__ __volatile("movd %0, %%xmm0" : : "m" (value));
+	value = 2;
+	__asm__ __volatile("movd %0, %%xmm1" : : "m" (value));
+	value = 3;
+	__asm__ __volatile("movd %0, %%xmm2" : : "m" (value));
+	value = 4;
+	__asm__ __volatile("movd %0, %%xmm3" : : "m" (value));
+	value = 5;
+	__asm__ __volatile("movd %0, %%xmm4" : : "m" (value));
+	value = 6;
+	__asm__ __volatile("movd %0, %%xmm5" : : "m" (value));
+	value = 7;
+	__asm__ __volatile("movd %0, %%xmm6" : : "m" (value));
+	value = 8;
+	__asm__ __volatile("movd %0, %%xmm7" : : "m" (value));
+
+	/* Launch child process. */
+	pid = fork();
+
+	/* Failed to fork(). */
+	if (pid < 0)
+		return (-1);
+
+	/*
+	 * Child process tries
+	 * to mess up the XMM registers by clearing them.
+	 */
+	else if (pid == 0)
+	{
+		__asm __volatile__
+		(
+			"pxor %xmm0, %xmm0\n"
+			"pxor %xmm1, %xmm1\n"
+			"pxor %xmm2, %xmm2\n"
+			"pxor %xmm3, %xmm3\n"
+			"pxor %xmm4, %xmm4\n"
+			"pxor %xmm5, %xmm5\n"
+			"pxor %xmm6, %xmm6\n"
+			"pxor %xmm7, %xmm7\n"
+		);
+		_exit(EXIT_SUCCESS);
+	}
+	
+	/* Wait for child. */
+	wait(NULL);
+	
+	/* Add values. */
+	__asm__ __volatile
+	(
+		"paddd %xmm0, %xmm1\n"
+		"paddd %xmm1, %xmm2\n"
+		"paddd %xmm2, %xmm3\n"
+		"paddd %xmm3, %xmm4\n"
+		"paddd %xmm4, %xmm5\n"
+		"paddd %xmm5, %xmm6\n"
+		"paddd %xmm6, %xmm7\n"
+	);
+	
+	/* Move sum into variable. */
+	__asm__ __volatile("movd %%xmm7, %%eax" : "=a" (value));
+	
+	if (value == (NUM_VALUES*(NUM_VALUES+1))/2)
+		return (0);
+	else
+		return (1);
+#else
+	return (1);
+#endif
+}
+
+/*============================================================================*
  *							 Memory Violation								  *
  *============================================================================*/
 
@@ -709,6 +835,7 @@ static void usage(void)
 	printf("Brief: Performs regression tests on Nanvix.\n\n");
 	printf("Options:\n");
 	printf("  fpu	  Floating Point Unit Test\n");
+	printf("  simd    Streaming SIMD Extensions Test\n");
 	printf("  io	  I/O Test\n");
 	printf("  ipc	  Interprocess Communication Test\n");
 	printf("  paging  Paging System Test\n");
@@ -775,6 +902,14 @@ int main(int argc, char **argv)
 			printf("Float Point Unit Test\n");
 			printf("  Result [%s]\n",
 				   (!fpu_test()) ? "PASSED" : "FAILED");
+		}
+		
+		/* SIMD test. */
+		else if (!strcmp(argv[i], "simd"))
+		{
+			printf("Streaming SIMD Extensions Test\n");
+			printf("  Result [%s]\n",
+				   (!simd_test()) ? "PASSED" : "FAILED");
 		}
 
 		/* Semaphore tests. */

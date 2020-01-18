@@ -148,6 +148,8 @@
 	#define ESRCH           72  /**< No such process.                                */
 	#define ESTALE          73  /**< Stale NFS file handle.                          */
 	#define ETIMEDOUT       74  /**< Connection timed out.                           */
+	#define EXDEV           80  /**< Cross-device link.                              */
+	#define	EWOULDBLOCK	EAGAIN  /**< Operation would block.                          */
 #ifdef _XOPEN_SOURCE
 	#define ENODATA 76 /**< No message is available on the stream head read queue.   */
 	#define ENOSR   77 /**< No stream resources.                                     */

@@ -40,7 +40,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-int _fprintf_r(struct _reent *ptr, FILE *restrict fp,
+int _fprintf_r(struct _reent *ptr, FILE * fp,
   const char *__restrict fmt, ...)
 {
   int ret;
@@ -62,7 +62,7 @@ int _fprintf_r(struct _reent *ptr, FILE *restrict fp,
  *
  * @return Returns the number of bytes transmitted.
  */
-int fprintf(FILE *restrict fp, const char *restrict fmt, ...)
+int fprintf(FILE * fp, const char * fmt, ...)
 {
   int ret;
   va_list ap;

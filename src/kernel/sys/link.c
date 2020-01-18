@@ -55,6 +55,7 @@ PRIVATE void do_link(const char *source, const char *target)
 	}
 	
 	isource->nlinks++;
+	inode_touch(isource);
 	inode_unlock(isource);
 	
 	iparent = inode_dname(target, &name);

@@ -92,7 +92,7 @@
  *
  * @return Returns @p s1.
  */
-char *strcat(char *restrict s1, const char *restrict s2)
+char *strcat(char * s1, const char * s2)
 {
 #if defined(PREFER_SIZE_OVER_SPEED) || defined(__OPTIMIZE_SIZE__)
   char *s = s1;

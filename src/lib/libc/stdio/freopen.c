@@ -49,8 +49,8 @@
  * Re-direct an existing, open (probably) file to some other file.
  */
 
-FILE *_freopen_r(struct _reent *ptr, const char *restrict file,
-  const char *restrict mode, register FILE *restrict fp)
+FILE *_freopen_r(struct _reent *ptr, const char * file,
+  const char * mode, register FILE * fp)
 {
   register int f;
   int flags, oflags;
@@ -219,8 +219,8 @@ FILE *_freopen_r(struct _reent *ptr, const char *restrict file,
  * @return Returns the value of stream. Otherwise, a null pointer is
  * returned and errno is set to indicate the error.
  */
-FILE *freopen(const char *restrict file, const char *restrict mode,
-  register FILE *restrict fp)
+FILE *freopen(const char * file, const char * mode,
+  register FILE * fp)
 {
   return _freopen_r (_REENT, file, mode, fp);
 }

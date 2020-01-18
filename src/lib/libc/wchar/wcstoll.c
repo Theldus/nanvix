@@ -69,7 +69,7 @@
  * @return Returns the converted value. If no conversion could be performed,
  * 0 is returned.
  */
-long long wcstoll(const wchar_t *restrict s, wchar_t **restrict ptr, int base)
+long long wcstoll(const wchar_t * s, wchar_t ** ptr, int base)
 {
 	return _wcstoll_r (_REENT, s, ptr, base);
 }

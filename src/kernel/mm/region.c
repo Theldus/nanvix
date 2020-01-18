@@ -435,6 +435,11 @@ found:
 	reg->gid = curr_proc->gid;
 	for (int i = 0; i < MREGIONS; i++)
 		reg->mtab[i] = NULL;
+		
+	/* Clear BSS 'subsection'. */
+	reg->bss.start = 0;
+	reg->bss.off = 0;
+	reg->bss.size = 0;
 	
 	/* Expand region. */
 	if (expand(NULL, reg, size))
@@ -815,7 +820,7 @@ PUBLIC struct pregion *findreg(struct process *proc, addr_t addr)
 	for (preg = &proc->pregs[0]; preg < &proc->pregs[NR_PREGIONS]; preg++)
 	{
 		/* Skip invalid regions. */
-		if ((reg = preg->reg) == NULL)
+		if (preg == NULL || (reg = preg->reg) == NULL)
 			continue;
 		
 		/* Region grows downwards. */

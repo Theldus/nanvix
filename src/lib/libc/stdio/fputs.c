@@ -48,7 +48,7 @@
 /*
  * Write the given string to the given file.
  */
-int _fputs_r(struct _reent * ptr, char const *restrict s, FILE *restrict fp)
+int _fputs_r(struct _reent * ptr, char const * s, FILE * fp)
 {
 #ifdef _FVWRITE_IN_STREAMIO
   int result;
@@ -105,7 +105,7 @@ error:
  * returns EOF, sets an error indicator for the stream,
  * and sets errno to indicate the error.
  */
-int fputs(char const *restrict s, FILE *restrict fp)
+int fputs(char const * s, FILE * fp)
 {
   return _fputs_r (_REENT, s, fp);
 }

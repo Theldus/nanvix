@@ -40,7 +40,7 @@
 #include <stdarg.h>
 #include "local.h"
 
-int _scanf_r(struct _reent *ptr, const char *restrict fmt, ...)
+int _scanf_r(struct _reent *ptr, const char * fmt, ...)
 {
   int ret;
   va_list ap;
@@ -67,7 +67,7 @@ int _scanf_r(struct _reent *ptr, const char *restrict fmt, ...)
  * EOF is also returned if a read error occurs, in which case the error
  * indicator for the stream is set, and errno is set indicate the error.
  */
-int scanf(const char *restrict fmt, ...)
+int scanf(const char * fmt, ...)
 {
   int ret;
   va_list ap;

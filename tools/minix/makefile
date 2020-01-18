@@ -35,10 +35,14 @@ CFLAGS   += -D NDEBUG -D BUILDING_TOOLS
 CFLAGS   += --static
 
 # Builds everything.
-all: cp.minix mkdir.minix mkfs.minix mknod.minix
+all: cp.minix gcp.minix mkdir.minix mkfs.minix mknod.minix
 
 # Builds cp.minix.
 cp.minix: bitmap.c minix.c util.c util.c cp.c
+	$(CC) $(CFLAGS) $^ -o $(BINDIR)/$@
+
+# Builds gcp.minix.
+gcp.minix: bitmap.c minix.c util.c util.c gcp.c
 	$(CC) $(CFLAGS) $^ -o $(BINDIR)/$@
 
 # Builds mkdir.minix.

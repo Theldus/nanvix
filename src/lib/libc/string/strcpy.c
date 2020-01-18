@@ -94,7 +94,7 @@
  * @return Returns a pointer to the terminating NUL character copied
  * into the @p dst0 buffer.
  */
-char* strcpy(char *restrict dst0, const char *restrict src0)
+char* strcpy(char * dst0, const char * src0)
 {
 #if defined(PREFER_SIZE_OVER_SPEED) || defined(__OPTIMIZE_SIZE__)
   char *s = dst0;

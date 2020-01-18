@@ -99,7 +99,7 @@
  * @return If a NUL character is written to the destination, returns the 
  * address of the first such NUL character. Otherwise, returns &dst[n].
  */
-char *stpncpy(char *restrict dst, const char *restrict src, size_t count)
+char *stpncpy(char * dst, const char * src, size_t count)
 {
   char *ret = NULL;
 

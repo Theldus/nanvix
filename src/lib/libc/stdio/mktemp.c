@@ -295,8 +295,6 @@ _DEFUN(mkstemp, (path),
 
 # if !defined _ELIX_LEVEL || _ELIX_LEVEL >= 4
 
-#if defined(_POSIX_C_SOURCE) || defined(_XOPEN_SOURCE)
-
 /**
  * @brief Creates a unique directory or file.
  *
@@ -310,6 +308,11 @@ char *mkdtemp(char *path)
   return (_gettemp (_REENT, path, (int *) NULL, 1, 0, 0) ? path : NULL);
 }
 
-#endif /* _POSIX_C_SOURCE || _XOPEN_SOURCE */
 #endif /* _ELIX_LEVEL */
+
+char *mktemp(char *path)
+{
+  return (_gettemp (_REENT, path, (int *) NULL, 0, 0, 0) ? path : (char *) NULL);
+}
+
 #endif /* ! defined (_REENT_ONLY) */

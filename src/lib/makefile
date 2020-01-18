@@ -20,7 +20,6 @@
 #
 
 # Toolchain configuration.
-export CFLAGS += -Os
 export CFLAGS += -Wno-error=maybe-uninitialized
 export CFLAGS += -Wno-error=parentheses
 

@@ -185,6 +185,15 @@ PUBLIC void yield(void)
 			write_msr(IA32_PERFEVTSELx + 1, value);
 		}
 	}
+
+	/* Schedule only different processes. */	
+	if (curr_proc != next)
+	{
+		/* Save and restore FPU/SIMD context. */
+		fpu_save(curr_proc);
+		fpu_restore(next);
 	
-	switch_to(next);
+		/* Swith context. */
+		switch_to(next);
+	}
 }

@@ -41,8 +41,8 @@
 #include <limits.h>
 #include "local.h"
 
-int _sprintf_r(struct _reent *ptr, char *restrict str,
-	const char *restrict fmt, ...)
+int _sprintf_r(struct _reent *ptr, char * str,
+	const char * fmt, ...)
 {
   int ret;
   va_list ap;
@@ -72,7 +72,7 @@ int _sprintf_r(struct _reent *ptr, char *restrict str,
  * @return Returns the number of bytes written to @p str, excluding the
  * terminating null byte.
  */
-int sprintf(char *restrict str, const char *restrict fmt, ...)
+int sprintf(char * str, const char * fmt, ...)
 {
   int ret;
   va_list ap;

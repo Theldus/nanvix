@@ -84,11 +84,11 @@ found:
 	sb->flags |= SUPERBLOCK_DIRTY;
 	
 	/* Clean block to avoid security issues. */
-	buf = bread(sb->dev, blk);	
+	buf = bread(sb->dev, num);	
 	kmemset(buffer_data(buf), 0, BLOCK_SIZE);
 	buffer_dirty(buf, 1);
 	brelse(buf);
-	
+		
 	return (num);
 }
 
@@ -158,7 +158,10 @@ PRIVATE void block_free_indirect(struct superblock *sb, block_t num)
 		
 	/* Free indirect disk block. */
 	for (i = 0; i < NR_SINGLE; i++)
+	{
 		block_free_direct(sb, ((block_t *)buffer_data(buf))[i]);
+		((block_t *)buffer_data(buf))[i] = BLOCK_NULL;
+	}
 	block_free_direct(sb, num);
 		
 	brelse(buf);
@@ -188,7 +191,10 @@ PRIVATE void block_free_dindirect(struct superblock *sb, block_t num)
 		
 	/* Free direct zone. */
 	for (i = 0; i < NR_SINGLE; i++)
+	{
 		block_free_indirect(sb, ((block_t *)buffer_data(buf))[i]);
+		((block_t *)buffer_data(buf))[i] = BLOCK_NULL;
+	}
 	block_free_direct(sb, num);
 	
 	brelse(buf);
@@ -338,7 +344,7 @@ PUBLIC block_t create_direct_block(struct inode *ip, off_t offset, int create)
 PUBLIC block_t block_map(struct inode *ip, off_t off, int create)
 {
 	block_t phys;       /* Physical block number.    */
-	block_t logic;      /* Logical block number.     */
+	size_t logic;       /* Logical block number.     */
 	struct buffer *buf; /* Underlying buffer.        */
 	unsigned tmp;       /* Logical block number tmp. */
 	
@@ -430,7 +436,7 @@ PUBLIC block_t block_map(struct inode *ip, off_t off, int create)
 	if (tmp < NR_DOUBLE)
 	{
 		size_t logicSingle = logic / (NR_SINGLE * BLOCK_SIZE);
-		size_t logicDouble = logic / BLOCK_SIZE;
+		size_t logicDouble = (logic / BLOCK_SIZE) & (NR_SINGLE - 1);
 		
 		/* Create single, double and/or direct block. */
 		if ( (phys = create_direct_block(ip,ZONE_DOUBLE,create)) != BLOCK_NULL)
