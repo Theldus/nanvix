@@ -9,8 +9,8 @@ existing software.
 
 ## ABOUT THIS FORK
 
-This branch/fork (dev) is a direct fork from [nanvix/monolithic-kernel (master)]
-(https://github.com/nanvix/monolithic-kernel),
+This branch/fork (dev) is a direct fork from
+[nanvix/monolithic-kernel (master)](https://github.com/nanvix/monolithic-kernel),
 but with some differences that may or not appear in the upstream, some of them:
 
 - No Thread/Multi-Core support (commit `#68b32b5` removed)
@@ -72,22 +72,23 @@ the following commands.
   $ sudo bash tools/dev/arch/setup-toolchain-i386.sh
   $ sudo bash tools/dev/setup-qemu.sh
   ```
+
 Don't forget that after running `setup-toolchain-i386.sh`, you need to
 set up the environment variables in your ~/.bashrc, as informed at the
 end of the script execution, usually something like:
 
-```bash
-export TARGET=i386                                                       # Target architecture
-export PATH=$PATH:/usr/local/nanvix-toolchain/bin                        # Toolchain binaries
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/nanvix-toolchain/lib  # MPC, MPFR and GMP
-```
+  ```bash
+  export TARGET=i386                                                       # Target architecture
+  export PATH=$PATH:/usr/local/nanvix-toolchain/bin                        # Toolchain binaries
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/nanvix-toolchain/lib  # MPC, MPFR and GMP libs
+  ```
 
 - To build Nanvix:
-```bash
+  ```bash
   $ cd path/folder-name
   $ make nanvix > /dev/null
   $ sudo make image
-```
+  ```
 
 - To run Nanvix on a virtual machine:
   ```bash
@@ -100,21 +101,21 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/nanvix-toolchain/lib  # MPC, 
 The programs ported to Nanvix are separated from the main build-tree, so
 to compile them you can:
 
-```bash
-$ cd path/folder-name
-$ make ports # make ports-clean will clean-up your ports environment
-```
+  ```bash
+  $ cd path/folder-name
+  $ make ports # make ports-clean will clean-up your ports environment
+  ```
 or you may want to do per project:
-```bash
-$ cd path/folder-name/src/ubin/PORTS/ported-program
-$ bash build.sh # bash clean.sh will clean-up your ports environment
-```
+  ```bash
+  $ cd path/folder-name/src/ubin/PORTS/ported-program
+  $ bash build.sh # bash clean.sh will clean-up your ports environment
+  ```
 
 after that you can build Nanvix (if not yet) and make an ISO image with:
-```bash
-$ make nanvix > /dev/null
-$ make image
-```
+  ```bash
+  $ make nanvix > /dev/null
+  $ make image
+  ```
 
 ## LICENSE AND MAINTAINERS
 
