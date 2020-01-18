@@ -6,4 +6,4 @@ services:
   - docker
 
 script:
-- docker run -v"$(pwd):/root/nanvix" -p4567:4567 theldus/nanvix_dev:latest /bin/sh /root/build.sh
+- docker run -v"$(pwd):/root/nanvix" -p4567:4567 theldus/nanvix_dev:latest /bin/sh /build.sh
