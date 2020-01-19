@@ -277,6 +277,8 @@
 	extern int siprintf(char *, const char *, ...);
 	extern int siscanf(const char *, const char *, ...);
 	extern int sniprintf(char *, size_t, const char *, ...);
+	extern ssize_t getline(char **, size_t *, FILE *);
+	extern ssize_t getdelim(char **, size_t *, int, FILE *);
 
 	/**@}*/
 
