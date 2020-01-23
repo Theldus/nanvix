@@ -22,6 +22,7 @@ but with some differences that may or not appear in the upstream, some of them:
 - Ported programs:
   - GCC 6.4.0
   - Binutils 2.27
+  - [Kilo](https://github.com/antirez/kilo) Text Editor
   - more coming soon
 - OR1K not currently supported¹ (checkout `#bdf4f27` for a working version)
 
