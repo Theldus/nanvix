@@ -448,12 +448,6 @@ void editorUpdateSyntax(erow *row) {
 		/* Handle "" and '' */
 		if (in_string) {
 			row->hl[i] = HL_STRING;
-			if (*p == '\\') {
-				row->hl[i+1] = HL_STRING;
-				p += 2; i += 2;
-				prev_sep = 0;
-				continue;
-			}
 			if (*p == in_string) in_string = 0;
 			p++; i++;
 			continue;
