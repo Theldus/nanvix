@@ -35,6 +35,36 @@
 	#define IEXTEN	0040 /* Enable extended input character processing. */	
 	#define ISIG	0100 /* Enable signals.                             */
 
+	/* Input modes flags. */
+	#define BRKINT  0001 /* Signal interrupt on break.              */
+	#define ICRNL   0002 /* Map CR to NL on input.                  */
+	#define IGNBRK  0004 /* Ignore break condition.                 */
+	#define IGNCR   0010 /* Ignore CR.                              */
+	#define IGNPAR  0020 /* Ignore characters with parity errors.   */
+	#define INLCR   0040 /* Map NL to CR on input.                  */
+	#define INPCK   0100 /* Enable input parity check.              */
+	#define ISTRIP  0200 /* Strip character.                        */
+	#define IXANY   0400 /* Enable any character to restart output. */
+	#define IXOFF   1000 /* Enable start/stop input control.        */
+	#define IXON    2000 /* Enable start/stop output control.       */
+	#define PARMRK  4000 /* Mark parity errors.                     */
+
+	/* Output modes flags. */
+	#define OPOST  0001 /* Post-process output. */
+
+	/* Control modes flags. */
+	#define CSIZE  0060 /* Character size.               */
+	#define CS5    0000 /* 5 bits.                       */
+	#define CS6    0020 /* 6 bits.                       */
+	#define CS7    0040 /* 7 bits.                       */
+	#define CS8    0060 /* 8 bits.                       */
+	#define CSTOPB 0100 /* Send two stop bits, else one. */
+	#define CREAD  0200 /* Enable receiver.              */
+	#define PARENB 0400 /* Parity enable.                */
+	#define PARODD 1000 /* Odd parity, else even.        */
+	#define HUPCL  2000 /* Hang up on last close.        */
+	#define CLOCAL 4000 /* Ignore modem status lines.    */
+
 	/**
 	 * @name Control Characters.
 	 */

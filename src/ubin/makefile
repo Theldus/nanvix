@@ -56,7 +56,7 @@ export CFLAGS += -U__STRICT_ANSI__
 
 # Builds everything.
 all: cat chgrp chmod chown cp echo kill ln login ls mv nice pwd rm stat \
-	sync tsh ps mount unmount mkfs
+	sync tsh ps mount unmount mkfs clear
 
 # Builds cat.
 cat: 
