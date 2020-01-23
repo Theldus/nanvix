@@ -34,8 +34,7 @@
 
 #define KILO_VERSION "0.0.1"
 
-#define _BSD_SOURCE
-#define _GNU_SOURCE
+#define _DEFAULT_SOURCE
 
 #include <termios.h>
 #include <stdlib.h>
@@ -45,8 +44,10 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <sys/types.h>
-#include <sys/ioctl.h>
-#include <sys/time.h>
+#ifndef __nanvix__
+#	include <sys/ioctl.h>
+#endif
+#include <time.h>
 #include <unistd.h>
 #include <stdarg.h>
 #include <fcntl.h>
@@ -116,7 +117,11 @@ enum KEY_ACTION{
 		CTRL_H = 8,			/* Ctrl-h */
 		TAB = 9,			/* Tab */
 		CTRL_L = 12,		/* Ctrl+l */
-		ENTER = 13,			/* Enter */
+#ifdef __nanvix__
+		ENTER = 10,			/* Enter */
+#else
+		ENTER = 13,
+#endif
 		CTRL_Q = 17,		/* Ctrl-q */
 		CTRL_S = 19,		/* Ctrl-s */
 		CTRL_U = 21,		/* Ctrl-u */
@@ -163,7 +168,8 @@ char *C_HL_extensions[] = {".c",".cpp",NULL};
 char *C_HL_keywords[] = {
 		/* A few C / C++ keywords */
 		"switch","if","while","for","break","continue","return","else",
-		"struct","union","typedef","static","enum","class",
+		"struct","union","typedef","static","enum","class", "#include",
+		"#define",
 		/* C types */
 		"int|","long|","double|","float|","char|","unsigned|","signed|",
 		"void|",NULL
@@ -190,7 +196,7 @@ static struct termios orig_termios; /* In order to restore at exit.*/
 void disableRawMode(int fd) {
 	/* Don't even check the return value as it's too late. */
 	if (E.rawmode) {
-		tcsetattr(fd,TCSAFLUSH,&orig_termios);
+		tcsetattr(fd,TCSANOW,&orig_termios);
 		E.rawmode = 0;
 	}
 }
@@ -221,11 +227,11 @@ int enableRawMode(int fd) {
 	 * no signal chars (^Z,^C) */
 	raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
 	/* control chars - set return condition: min number of bytes and timer. */
-	raw.c_cc[VMIN] = 0; /* Return each byte, or zero for timeout. */
-	raw.c_cc[VTIME] = 1; /* 100 ms timeout (unit is tens of second). */
+	raw.c_cc[VMIN] = 1;
+	raw.c_cc[VTIME] = 0;
 
 	/* put terminal in raw mode after flushing */
-	if (tcsetattr(fd,TCSAFLUSH,&raw) < 0) goto fatal;
+	if (tcsetattr(fd,TCSANOW,&raw) < 0) goto fatal;
 	E.rawmode = 1;
 	return 0;
 
@@ -315,6 +321,19 @@ int getCursorPosition(int ifd, int ofd, int *rows, int *cols) {
  * call fails the function will try to query the terminal itself.
  * Returns 0 on success, -1 on error. */
 int getWindowSize(int ifd, int ofd, int *rows, int *cols) {
+#ifdef __nanvix__
+	((void)ifd);
+	((void)ofd);
+
+	/*
+	 * Nanvix will always use TTY with 80 cols / 25 rows,
+	 * so can safely get rid of ioctl call and use hardcoded
+	 * values, ;-).
+	 */
+	*cols = 79;
+	*rows = 25;
+	return 0;
+#else
 	struct winsize ws;
 
 	if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
@@ -345,6 +364,7 @@ int getWindowSize(int ifd, int ofd, int *rows, int *cols) {
 
 failed:
 	return -1;
+#endif
 }
 
 /* ====================== Syntax highlight color scheme	 ==================== */
@@ -770,6 +790,13 @@ void editorDelChar() {
 	E.dirty++;
 }
 
+/* Exit the editor and clear the screen. */
+void editorQuit(void) {
+	write(STDOUT_FILENO, "\x1b[2J", 4);
+	write(STDOUT_FILENO, "\x1b[H", 3);
+	exit(0);
+}
+
 /* Load the specified program in the editor memory and returns 0 on success
  * or 1 on error. */
 int editorOpen(char *filename) {
@@ -804,24 +831,35 @@ int editorOpen(char *filename) {
 
 /* Save the current file on disk. Return 0 on success, 1 on error. */
 int editorSave(void) {
+	int fd;
 	int len;
+	char *new_filename;
 	char *buf = editorRowsToString(&len);
-	int fd = open(E.filename,O_RDWR|O_CREAT,0644);
+
+	new_filename = malloc(sizeof(char) * (strlen(E.filename) + 5));
+	strcpy(new_filename, E.filename);
+	strcat(new_filename, ".new");
+
+	fd = open(new_filename,O_RDWR|O_CREAT,0644);
 	if (fd == -1) goto writeerr;
 
-	/* Use truncate + a single write(2) call in order to make saving
-	 * a bit safer, under the limits of what we can do in a small editor. */
-	if (ftruncate(fd,len) == -1) goto writeerr;
+	/* Lets use a new file and then rename instead of truncanting the
+	 * existing one, since Nanvix lacks ftruncate syscall. Its a bit
+	 * redundant creating a new file and also wastes (temporarily)
+	 * disk storage, but i'm not expecting to edit huge files anyway. */
 	if (write(fd,buf,len) != len) goto writeerr;
-
 	close(fd);
+	if (rename(new_filename,E.filename) == -1) goto writeerr;
+
 	free(buf);
+	free(new_filename);
 	E.dirty = 0;
 	editorSetStatusMessage("%d bytes written on disk", len);
 	return 0;
 
 writeerr:
 	free(buf);
+	free(new_filename);
 	if (fd != -1) close(fd);
 	editorSetStatusMessage("Can't save! I/O error: %s",strerror(errno));
 	return 1;
@@ -870,7 +908,7 @@ void editorRefreshScreen(void) {
 			if (E.numrows == 0 && y == E.screenrows/3) {
 				char welcome[80];
 				int welcomelen = snprintf(welcome,sizeof(welcome),
-					"Kilo editor -- verison %s\x1b[0K\r\n", KILO_VERSION);
+					"Kilo editor -- version %s\x1b[0K\r\n", KILO_VERSION);
 				int padding = (E.screencols-welcomelen)/2;
 				if (padding) {
 					abAppend(&ab,"~",1);
@@ -1182,7 +1220,7 @@ void editorProcessKeypress(int fd) {
 			quit_times--;
 			return;
 		}
-		exit(0);
+		editorQuit();
 		break;
 	case CTRL_S:		/* Ctrl-s */
 		editorSave();

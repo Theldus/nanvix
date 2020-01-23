@@ -1,3 +1,5 @@
+CC = i386-elf-nanvix-gcc
+
 all: kilo
 
 kilo: kilo.c
