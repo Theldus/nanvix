@@ -57,7 +57,7 @@
 
 /**
  * @brief Schedules a process to execution.
- * 
+ *
  * @param proc Process to be scheduled.
  */
 PUBLIC void sched(struct process *proc)
@@ -78,13 +78,13 @@ PUBLIC void stop(void)
 
 /**
  * @brief Resumes a process.
- * 
+ *
  * @param proc Process to be resumed.
- * 
+ *
  * @note The process must stopped to be resumed.
  */
 PUBLIC void resume(struct process *proc)
-{	
+{
 	/* Resume only if process has stopped. */
 	if (proc->state == PROC_STOPPED)
 		sched(proc);
@@ -109,7 +109,7 @@ PUBLIC void yield(void)
 			/* Save the current counter. */
 			if (curr_proc->pmcs.enable_counters & 1)
 				curr_proc->pmcs.C1 += read_pmc(0);
-			
+
 			if (curr_proc->pmcs.enable_counters >> 1)
 				curr_proc->pmcs.C2 += read_pmc(1);
 
@@ -121,16 +121,20 @@ PUBLIC void yield(void)
 	/* Remember this process. */
 	last_proc = curr_proc;
 
-	/* Check alarm. */
+	/* Check alarm and nanosleep. */
 	for (p = FIRST_PROC; p <= LAST_PROC; p++)
 	{
 		/* Skip invalid processes. */
 		if (!IS_VALID(p))
 			continue;
-		
+
 		/* Alarm has expired. */
 		if ((p->alarm) && (p->alarm < ticks))
 			p->alarm = 0, sndsig(p, SIGALRM);
+
+		/* Nanosleep has expired. */
+		if ((p->ns_ticks) && (p->ns_ticks < ticks))
+			p->ns_ticks = 0, wakeup(&p->ns_chain);
 	}
 
 	/* Choose a process to run next. */
@@ -140,14 +144,14 @@ PUBLIC void yield(void)
 		/* Skip non-ready process. */
 		if (p->state != PROC_READY)
 			continue;
-		
+
 		/* Higher priority process found. */
 		if (HIGHER_PRIORITY(next, p))
 		{
 			next->counter++;
 			next = p;
 		}
- 
+
 		/*
 		 * Increment waiting
 		 * time of process.
@@ -155,7 +159,7 @@ PUBLIC void yield(void)
 		else
 			p->counter++;
 	}
-	
+
 	/* Switch to next process. */
 	next->priority = PRIO_USER;
 	next->state = PROC_RUNNING;
@@ -175,7 +179,7 @@ PUBLIC void yield(void)
 
 			write_msr(IA32_PERFEVTSELx, value);
 		}
-		
+
 		/* Starts the counter 2. */
 		if (next->pmcs.enable_counters >> 1)
 		{
@@ -186,13 +190,13 @@ PUBLIC void yield(void)
 		}
 	}
 
-	/* Schedule only different processes. */	
+	/* Schedule only different processes. */
 	if (curr_proc != next)
 	{
 		/* Save and restore FPU/SIMD context. */
 		fpu_save(curr_proc);
 		fpu_restore(next);
-	
+
 		/* Swith context. */
 		switch_to(next);
 	}

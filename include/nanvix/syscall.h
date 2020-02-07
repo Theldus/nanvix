@@ -35,8 +35,8 @@
 	#include <semaphore.h>
 
 	/* Number of system calls. */
-	#define NR_SYSCALLS 59
-	
+	#define NR_SYSCALLS 60
+
 	/* System call numbers. */
 	#define NR_alarm     0
 	#define NR_brk       1
@@ -97,9 +97,10 @@
 	#define NR_sempost  56
 	#define NR_acct     57
 	#define NR_rmdir    58
- 	#define NR_semget   59
- 	#define NR_semctl   60
- 	#define NR_semop    61
+	#define NR_nanosleep 59
+ 	#define NR_semget   60
+ 	#define NR_semctl   61
+ 	#define NR_semop    62
 
 #ifndef _ASM_FILE_
 
@@ -116,72 +117,72 @@
 	EXTERN int sys_nice(int incr);
 	EXTERN void sys_pause(void);
 	EXTERN int sys_seteuid(uid_t uid);
-	EXTERN int sys_setgid(gid_t uid);	
+	EXTERN int sys_setgid(gid_t uid);
 	EXTERN sighandler_t sys_signal(int, sighandler_t , void (*)(void));
 	EXTERN pid_t sys_setpgrp(void);
 	EXTERN int sys_setuid(pid_t uid);
 	EXTERN pid_t sys_wait(int *stat_loc);
-	
+
 	/*
 	 * Duplicates a file descriptor.
 	 */
 	EXTERN int sys_dup2(int oldfd, int newfd);
-	
+
 	/*
 	 * Performs control operations on a device.
 	 */
 	EXTERN int sys_ioctl(unsigned fd, unsigned cmd, unsigned arg);
-	
+
 	/*
 	 * Checks user permissions for a file.
 	 */
 	EXTERN int sys_access(const char *path, int amode);
-	
+
 	/*
 	 * Changes working directory.
 	 */
 	EXTERN int sys_chdir(const char *path);
-	
+
 	/*
 	 * Changes permissions of a file.
 	 */
 	EXTERN int sys_chmod(const char *path, mode_t mode);
-	
+
 	/*
 	 * Changes owner and group of a file.
 	 */
 	EXTERN int sys_chown(const char *path, uid_t owner, gid_t group);
-	
+
 	/*
 	 * Changes working directory.
 	 */
 	EXTERN int sys_chroot(const char *path);
-	
+
 	/*
 	 * Closes a file.
 	 */
 	EXTERN int sys_close(int fd);
-	
+
 	/*
 	 * Executes a program.
 	 */
 	EXTERN int sys_execve(const char *filename, const char **argv, const char **envp);
-	
+
 	/*
 	 * Manipulates file descriptor.
 	 */
 	EXTERN int sys_fcntl(int fd, int cmd, int arg);
-	
+
 	/*
 	 * Gets the effective user group ID of the calling process.
 	 */
 	EXTERN gid_t sys_getegid(void);
-	
+
 	/*
 	 *  Gets the effective user ID of the calling process.
 	 */
 	EXTERN uid_t sys_geteuid(void);
-	
+
 	/*
 	 * Gets the real user group ID of the calling process.
 	 */
@@ -191,77 +192,77 @@
 	 * Links a name to a file.
 	 */
 	EXTERN int sys_link(const char *path1, const char *path2);
-	
+
 	/*
 	 * Moves the read/write file offset.
 	 */
 	EXTERN off_t sys_lseek(int fd, off_t offset, int whence);
-	
+
 	/*
 	 * Opens a file.
 	 */
 	EXTERN int sys_open(const char *path, int oflag, mode_t mode);
-	
+
 	/*
 	 * Creates an interprocess channel.
 	 */
 	EXTERN int sys_pipe(int fildes[2]);
-	
+
 	/*
 	 * Reads from a file.
 	 */
 	EXTERN ssize_t sys_read(int fd, void *buf, size_t n);
-	
+
 	/*
 	 * Sets the effective user group ID of the calling process.
 	 */
 	EXTERN int sys_setegid(gid_t gid);
-	
+
 	/*
 	 * Gets file status.
 	 */
 	EXTERN int sys_stat(const char *path, struct stat *buf);
-	
+
 	/*
 	 * Schedules file system updates.
 	 */
 	EXTERN void sys_sync(void);
-	
+
 	/*
 	 * Gets process and waited-for child process times.
 	 */
 	EXTERN clock_t sys_times(struct tms *buffer);
-	
+
 	/*
 	 * Sets and gets the file mode creation mask.
 	 */
 	EXTERN mode_t sys_umask(mode_t cmask);
-	
+
 	/*
 	 * Gets the name of the current system.
 	 */
 	EXTERN int sys_uname(struct utsname *name);
-	
+
 	/*
 	 * Removes a directory entry.
 	 */
 	EXTERN int sys_unlink(const char *path);
-	
+
 	/*
 	 * Gets file system statistics.
 	 */
 	EXTERN int sys_ustat(dev_t dev, struct ustat *ubuf);
-	
+
 	/*
 	 * Set file access and modification times
 	 */
 	EXTERN int sys_utime(const char *path, struct utimbuf *times);
-	
+
 	/*
 	 * Writes to a file.
 	 */
 	EXTERN ssize_t sys_write(int fd, const void *buf, size_t n);
-	
+
 	EXTERN int sys_shutdown(void);
 
 	/*
@@ -278,7 +279,7 @@
 	 * Get system ticks since initialization
 	 */
 	EXTERN int sys_gticks(void);
-	
+
 	/* Forward definitions. */
 	EXTERN time_t sys_time(time_t *);
 
@@ -289,7 +290,7 @@
 
 	/* Forward definitions. */
 	EXTERN int sys_mount(const char *, const char *);
-	EXTERN int sys_unmount(const char *);	
+	EXTERN int sys_unmount(const char *);
 	EXTERN int sys_mkfs(const char *, const char *, int);
 
 	/* Creates or opens a semaphore */
@@ -306,9 +307,12 @@
 
 	/* Unlock a semaphore */
 	EXTERN int sys_sempost(int idx);
-	
+
 	/* Removes an empty directory. */
 	EXTERN int sys_rmdir(const char *path);
+
+	/* Sleeps for a given amount of secs and nanosecs. */
+	EXTERN int sys_nanosleep(int tv_sec, int tv_nsec);
 
 #endif /* _ASM_FILE_ */
 

@@ -22,6 +22,7 @@
 #Newlib defines
 export CFLAGS += -DSIGNAL_PROVIDED
 export CFLAGS += -DMISSING_SYSCALL_NAMES -D_POSIX_C_SOURCE -D_FVWRITE_IN_STREAMIO
+export CFLAGS += -D_WANT_IO_LONG_LONG
 export CFLAGS += -U__STRICT_ANSI__
 
 # C source files.
