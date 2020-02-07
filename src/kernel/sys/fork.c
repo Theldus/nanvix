@@ -1,18 +1,18 @@
 /*
  * Copyright(C) 2011-2016 Pedro H. Penna <pedrohenriquepenna@gmail.com>
- * 
+ *
  * This file is part of Nanvix.
- * 
+ *
  * Nanvix is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Nanvix is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Nanvix. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -38,7 +38,7 @@ PUBLIC pid_t sys_fork(void)
 	struct pregion *preg; /* Process region. */
 
 	/*
-	 * Prevent non-privileged user from using the last 
+	 * Prevent non-privileged user from using the last
 	 * available slot in the process table, so a privileged
 	 * user can invoke kill() if something goes wrong.
 	 */
@@ -54,43 +54,43 @@ PUBLIC pid_t sys_fork(void)
 	}
 
 	kprintf("process table overflow");
-	
+
 	return (-EAGAIN);
 
 found:
-	
+
 	/* Mark process as beeing created. */
 	proc->flags = 1 << PROC_NEW;
 
 	err = crtpgdir(proc);
-	
+
 	/* Failed to create process page directory. */
 	if (err)
 		goto error0;
-	
+
 	/*
 	 * Duplicate attached regions.
 	 * Notice that regions will be attached in the child process
 	 * on the same indexes as in the father process.
 	 */
 	for (i = 0; i < NR_PREGIONS; i++)
-	{	
+	{
 		preg = &curr_proc->pregs[i];
-		
+
 		/* Process region not in use. */
 		if (preg == NULL || preg->reg == NULL)
-			continue;	
-			
+			continue;
+
 		lockreg(preg->reg);
 		reg = dupreg(preg->reg);
 		unlockreg(preg->reg);
-		
+
 		/* Failed to duplicate region. */
 		if (reg == NULL)
 			goto error1;
-		
+
 		err = attachreg(proc, &proc->pregs[i], preg->start, reg);
-		
+
 		/* Failed to attach region. */
 		if (err)
 		{
@@ -101,10 +101,10 @@ found:
 			freereg(reg);
 			goto error1;
 		}
-			
+
 		unlockreg(reg);
 	}
-	
+
 	/* Initialize process. */
 	proc->intlvl = 1;
 	proc->received = 0;
@@ -122,7 +122,7 @@ found:
 	for (i = 0; i < OPEN_MAX; i++)
 	{
 		proc->ofiles[i] = curr_proc->ofiles[i];
-		
+
 		/* Increment file reference count. */
 		if (proc->ofiles[i] != NULL)
 			proc->ofiles[i]->count++;
@@ -149,14 +149,16 @@ found:
 	proc->priority = curr_proc->priority;
 	proc->nice = curr_proc->nice;
 	proc->alarm = 0;
+	proc->ns_ticks = 0;
+	proc->ns_chain = NULL;
 	proc->next = NULL;
 	proc->chain = NULL;
 	sched(proc);
 
 	curr_proc->nchildren++;
-	
+
 	nprocs++;
-	
+
 	return (proc->pid);
 
 error1:
@@ -166,7 +168,7 @@ error1:
 		/* Region not attached. */
 		if (proc->pregs[i].reg == NULL)
 			continue;
-		
+
 		/* Detach. */
 		preg = &proc->pregs[i];
 		detachreg(proc, preg);

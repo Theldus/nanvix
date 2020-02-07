@@ -1,6 +1,5 @@
 /*
- * Copyright(C) 2011-2016 Pedro H. Penna   <pedrohenriquepenna@gmail.com>
- *              2016-2016 Subhra S. Sarkar <rurtle.coder@gmail.com>
+ * Copyright(C) 2020-2020 Davidson Francis <davidsondfgl@gmail.com>
  *
  * This file is part of Nanvix.
  *
@@ -18,34 +17,31 @@
  * along with Nanvix. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TIMER_H_
-#define TIMER_H_
+#include <time.h>
+#include <unistd.h>
+#include <errno.h>
+#include <stdio.h>
 
-	#include <nanvix/const.h>
+/*
+ * @brief Suspend execution for an interval of @p usec microseconds.
+ *
+ * @param usec Microseconds to sleep.
+ *
+ * @return Returns 0 if success, otherwise, returns -1 and set
+ * the errno variable.
+ */
+int usleep(useconds_t usec)
+{
+	struct timespec time;
 
-	/**
-	 * @brief Clock interrupt frequency (in Hz)
+	/* Fill timespec structure. */
+	time.tv_sec = usec / 1000000;
+	time.tv_nsec = (usec % 1000000) * 1000;
+
+	/*
+	 * Nanosleep already returns 0 if success, -1 if error
+	 * and already sets the errno variable, so nothing
+	 * special here.
 	 */
-	#define CLOCK_FREQ 100
-
-	/**
-	 * @brief Clock interval per miliseconds.
-	 */
-	#define CLOCK_INTERVAL_PER_MS 10
-
-#ifdef BUILDING_KERNEL
-	/**
-	 * @brief Current time.
-	 */
-	#define CURRENT_TIME \
-		(startup_time + ticks/CLOCK_FREQ)
-
- 	/* Forward declarations. */
-	EXTERN void clock_init(unsigned);
-
-	/* Forward definitions. */
-	EXTERN unsigned ticks;
-	EXTERN signed startup_time;
-#endif
-
-#endif /* TIMER_H_ */
+	return (nanosleep(&time, NULL));
+}
