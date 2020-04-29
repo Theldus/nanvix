@@ -1,5 +1,5 @@
 /*
- * Copyright(C) 2017-2017 Davidson Francis <davidsondfgl@gmail.com>
+ * Copyright(C) 2017-2020 Davidson Francis <davidsondfgl@gmail.com>
  * 
  * This file is part of Nanvix.
  * 
@@ -62,7 +62,8 @@ PUBLIC void fpu_init(void)
 			:
 			:
 			: "eax"
-		);	
+		);
+		fpu_save(curr_proc);
 	}
 }
 
