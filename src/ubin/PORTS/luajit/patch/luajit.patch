@@ -1,0 +1,32 @@
+diff -ruN old/src/Makefile new/src/Makefile
+--- old/src/Makefile	2020-03-20 10:10:18.000000000 -0300
++++ new/src/Makefile	2020-03-26 14:06:43.097351402 -0300
+@@ -221,7 +221,7 @@
+ TARGET_DYLIBPATH= $(TARGET_LIBPATH)/$(TARGET_DYLIBNAME)
+ TARGET_DLLNAME= lua$(NODOTABIVER).dll
+ TARGET_DLLDOTANAME= libluajit-$(ABIVER).dll.a
+-TARGET_XSHLDFLAGS= -shared -fPIC -Wl,-soname,$(TARGET_SONAME)
++TARGET_XSHLDFLAGS= -Wl,-soname,$(TARGET_SONAME)
+ TARGET_DYNXLDOPTS=
+ 
+ TARGET_LFSFLAGS= -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE
+@@ -345,7 +345,7 @@
+     endif
+   endif
+   ifeq (Linux,$(TARGET_SYS))
+-    TARGET_XLIBS+= -ldl
++    TARGET_XLIBS+=
+   endif
+   ifeq (GNU/kFreeBSD,$(TARGET_SYS))
+     TARGET_XLIBS+= -ldl
+@@ -523,8 +523,8 @@
+ 
+ # Mixed mode defaults.
+ TARGET_O= $(LUAJIT_A)
+-TARGET_T= $(LUAJIT_T) $(LUAJIT_SO)
+-TARGET_DEP= $(LIB_VMDEF) $(LUAJIT_SO)
++TARGET_T= $(LUAJIT_T)
++TARGET_DEP= $(LIB_VMDEF)
+ 
+ ifeq (Windows,$(TARGET_SYS))
+   TARGET_DYNCC= $(STATIC_CC)
