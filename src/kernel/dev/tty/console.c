@@ -374,7 +374,7 @@ PRIVATE void ansi_el(void)
 
 	while (pstart < pend)
 	{
-		*pstart = (cstate.bg_color << 8) | (' ');
+		*pstart = (cstate.bg_color << 12) | (' ');
 		pstart++;
 	}
 
@@ -825,7 +825,7 @@ PUBLIC void console_put(uint8_t ch, uint8_t color)
 	}
 
 	/* Set cursor position. */
-	if (cursor.x >= VIDEO_WIDTH)
+	if (cursor.x > VIDEO_WIDTH)
 	{
 		cursor.x = 0;
 		cursor.y++;
@@ -850,19 +850,30 @@ PUBLIC void console_clear(int mode)
 {
 	uint16_t *pstart;
 	uint16_t *pend;
+	int y;
 
 	/* Lines below cursor. */
 	if (mode == 0)
 	{
-		pstart = &video[(cursor.y+1)*VIDEO_WIDTH+0];
+		if (cursor.y == VIDEO_HIGH - 1)
+			y = cursor.y;
+		else
+			y = cursor.y + 1;
+
+		pstart = &video[cursor.y*VIDEO_WIDTH+cursor.x];
 		pend   = &video[VIDEO_HIGH*VIDEO_WIDTH+VIDEO_WIDTH];
 	}
 
 	/* Lines above cursor. */
 	else if (mode == 1)
 	{
+		if (cursor.y == 0)
+			y = cursor.y;
+		else
+			y = cursor.y - 1;
+
 		pstart = &video[0];
-		pend   = &video[(cursor.y-1)*VIDEO_WIDTH+VIDEO_WIDTH];
+		pend   = &video[y*VIDEO_WIDTH+VIDEO_WIDTH];
 	}
 
 	/* Blank all lines. */
@@ -888,7 +899,7 @@ PUBLIC void console_clear(int mode)
 
 	while (pstart < pend)
 	{
-		*pstart = (cstate.bg_color << 8) | (' ');
+		*pstart = (cstate.bg_color << 12) | (' ');
 		pstart++;
 	}
 }
