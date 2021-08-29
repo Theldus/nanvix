@@ -129,19 +129,19 @@ leave:
     decl PROC_INTLVL(%ebx)
     jnz leave.out
 	
-	/* Check if we were handling a system call. */ 
-	btrl $PROC_SYS, PROC_FLAGS(%ebx)
-	jnc check_signals
-	
 	/* Check if the syscall was a fork and if so, preempt. */
 	movl PROC_SYSNR(%ebx), %eax
 	cmpl $NR_fork, %eax
 	je leave.preempt
 
-	/* Check if PID > 1 and if so, do not preempt... */
+	/* Check if we were handling a system call. */
+	btrl $PROC_SYS, PROC_FLAGS(%ebx)
+	jc check_signals
+
+	/* Check if PID > 1 and if so, do not preempt... (but check for signals) */
 	movl PROC_PID(%ebx), %eax
 	cmpl $1, %eax
-	jg leave.out
+	jg check_signals
 	
 	leave.preempt:
 		/*
