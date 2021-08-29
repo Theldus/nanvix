@@ -330,7 +330,7 @@ int getWindowSize(int ifd, int ofd, int *rows, int *cols) {
 	 * so can safely get rid of ioctl call and use hardcoded
 	 * values, ;-).
 	 */
-	*cols = 79;
+	*cols = 80;
 	*rows = 25;
 	return 0;
 #else
