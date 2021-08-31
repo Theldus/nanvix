@@ -115,43 +115,24 @@ static void ansi_reset_buffer(void);
 #define STATE_CSI      2 /* Control Sequence Introducer Found.              */
 #define STATE_CSI_DEC  4 /* CSI Found and DEC enabled too.                  */
 
-/* Color item. */
-struct color_item
-{ uint16_t ansi_color; uint16_t vga_color; };
-
 /*
- * Color table
+ * Color table.
  *
- * Table that maps an ANSI Color to 80x25 console mode color
+ * Table that maps an ANSI Color (16-colors) to 80x25 console
+ * mode color.
  */
-PRIVATE struct color_item ctable [] =
+PRIVATE short ansi_to_console[16] =
 {
-	/* Foreground colors. */
-	{30, BLACK},
-	{31, RED},
-	{32, GREEN},
-	{33, BROWN},
-	{34, BLUE},
-	{35, MAGENTA},
-	{36, CYAN},
-	{37, WHITE},
-
-	/* Background colors. */
-	{40, BLACK},
-	{41, RED},
-	{42, GREEN},
-	{43, BROWN},
-	{44, BLUE},
-	{45, MAGENTA},
-	{46, CYAN},
-	{47, WHITE}
+	/* Light colors. */
+    BLACK, RED,     GREEN, BROWN, /* BROWN == YELLOW. */
+    BLUE,  MAGENTA, CYAN,  LIGHT_GREY, /* LIGHT_GREY == WHITE. */
+    /* Bright colors. */
+    BLACK + 8, RED      + 8, GREEN + 8, BROWN       + 8,
+    BLUE  + 8, MAGENTA  + 8, CYAN  + 8, LIGHT_GREY  + 8
 };
 
-/* Color table indexes. */
-#define FG_COLOR_START 0  /* Foreground color start, inclusive. */
-#define FG_COLOR_END   8  /* Foreground color end, exclusive.   */
-#define BG_COLOR_START 8  /* Background color start, inclusive. */
-#define BG_COLOR_END   16 /* Background color start, inclusive. */
+/* Bold state. */
+PRIVATE int not_bold = 1;
 
 /*
  * Console State
@@ -697,44 +678,69 @@ PRIVATE void cursor_enable()
  */
 PRIVATE void console_set_color(uint16_t color)
 {
-	int i;               /* Loop index. */
 	uint16_t tmp_color;  /* Temp color. */
 
-	/* If foreground. */
-	if (color >= 30 && color <= 39)
+	/* If light foreground. */
+	if ((color >= 30 && color <= 37) || color == 39)
 	{
 		/* Default foreground?. */
 		if (color == 39)
-			cstate.fg_color = LIGHT_GREY;
+			color = LIGHT_GREY;
 		else
 		{
-			/* Get console color equivalent. */
-			for (i = FG_COLOR_START; i < FG_COLOR_END; i++)
-				if (ctable[i].ansi_color == color)
-					break;
-
-			cstate.fg_color = ctable[i].vga_color;
+			color -= 30;
+			color = ansi_to_console[color];
 		}
 
-		cstate.color &= 0xF8FF;
-		cstate.color |= (cstate.fg_color << 8);
+		/*
+		 * Selectively disables bold or not
+		 *
+		 * Since bold and bright bits are the same, a previous bright
+		 * foreground would 'inadvertently' set the bold bit to 1, which is
+		 * wrong.
+		 *
+		 * The 'not_bold' flag maintains the current state of the bold,
+		 * and keeps this bit active or not depending on whether the bold
+		 * has been intentionally set before or not. Otherwise, all colors
+		 * would be bright/bold from the first bright foreground.
+		 */
+		cstate.fg_color = color;
+		cstate.color &= ~(((not_bold << 3) | 7) << 8);
+		cstate.color |= (color << 8);
 	}
 
-	/* If background. */
+	/* If light background. */
 	else if (color >= 40 && color <= 47)
 	{
-		/* Get console color equivalent. */
-		for (i = BG_COLOR_START; i < BG_COLOR_END; i++)
-			if (ctable[i].ansi_color == color)
-				break;
+		color -= 40;
+		color = ansi_to_console[color];
+		cstate.bg_color = color;
+		cstate.color &= 0x0FFF;
+		cstate.color |= (color << 12);
+	}
 
-		cstate.bg_color = ctable[i].vga_color;
-		cstate.color &= 0x8FFF;
-		cstate.color |= (cstate.bg_color << 12);
+	/* If bright foreground. */
+	else if (color >= 90 && color <= 97)
+	{
+		color -= 82;
+		color = ansi_to_console[color];
+		cstate.fg_color = color;
+		cstate.color &= 0xF0FF;
+		cstate.color |= (color << 8);
+	}
+
+	/* If bright background (blink is disabled!). */
+	else if (color >= 100 && color <= 107)
+	{
+		color -= 92;
+		color = ansi_to_console[color];
+		cstate.bg_color = color;
+		cstate.color &= 0x0FFF;
+		cstate.color |= (color << 12);
 	}
 
 	/* If a supported mode. */
-	else if (color == 0 || color == 1 || color == 7)
+	else if (color == 0 || color == 1 || color == 2 || color == 7)
 	{
 		/* Reset everything. */
 		if (color == 0)
@@ -742,7 +748,17 @@ PRIVATE void console_set_color(uint16_t color)
 
 		/* Bold/Bright */
 		else if (color == 1)
+		{
+			not_bold = 0;
 			cstate.color |= COLOR_BOLD;
+		}
+
+		/* Dim/Not-bright. */
+		else if (color == 2)
+		{
+			not_bold = 1;
+			cstate.color &= ~COLOR_BOLD;
+		}
 
 		/* Reversed. */
 		else
