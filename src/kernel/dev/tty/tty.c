@@ -460,6 +460,10 @@ PRIVATE ssize_t tty_read(unsigned minor, char *buf, size_t n)
 						i--;
 						*p++ = ch;
 					}
+
+					/* Check if we've written >= VMIN char, if so, return. */
+					if ( (size_t)((char *)p - buf) >= MIN_CHAR(tty.term) )
+						goto out;
 				}
 			}
 
