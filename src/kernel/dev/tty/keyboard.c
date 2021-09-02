@@ -62,7 +62,8 @@ enum flags
 {
 	ANY   = (1 << 0), /**< Any key pressed.   */
 	SHIFT = (1 << 1), /**< Shift key pressed. */
-	CTRL  = (1 << 2)  /**< CTRL key pressed.  */
+	CTRL  = (1 << 2), /**< CTRL key pressed.  */
+	ALT   = (1 << 3)  /**< ALT key pressed.   */
 };
 
 /**
@@ -103,6 +104,11 @@ PRIVATE uint8_t parse_key_hit(void)
 				mode &= ~CTRL;
 				break;
 
+			/* ALT. */
+			case KRLEFT_ALT:
+				mode &= ~ALT;
+				break;
+
 			/* Any other. */
 			default:
 				mode &= ~ANY;
@@ -125,6 +131,11 @@ PRIVATE uint8_t parse_key_hit(void)
 			/* CTRL. */
 			case KRLEFT_CTRL:
 				mode |= CTRL;
+				break;
+
+			/* ALT. */
+			case KRLEFT_ALT:
+				mode |= ALT;
 				break;
 
 			/* Any other. */
@@ -155,6 +166,16 @@ PRIVATE uint8_t get_ascii(void)
 		/* CTRL pressed. */
 		if (mode & CTRL)
 			return ((code < 96) ? code - 64 : code - 96);
+
+		/*
+		 * ALT pressed.
+		 *
+		 * We should issue an ESC[key to signal the ALT+key. Since
+		 * we don't have 2 bytes here, let's set bit 7 to 1 and let
+		 * tty_int handle it.
+		 */
+		if (mode & ALT)
+			return (code | 0x80);
 
 		return (code);
 	}
