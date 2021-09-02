@@ -154,6 +154,19 @@ PRIVATE int ansi_key_press(unsigned char ch)
 	if (is_ansi)
 		wakeup(&active->rinput.chain);
 
+	/* Maybe ALT+key?. */
+	else
+	{
+		if (ch & 0x80)
+		{
+			/* Emits ESC[key. */
+			KBUFFER_PUT(active->rinput, ESC);
+			KBUFFER_PUT(active->rinput, ch & 0x7F);
+			is_ansi = 1;
+			wakeup(&active->rinput.chain);
+		}
+	}
+
 	return (is_ansi);
 }
 
