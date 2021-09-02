@@ -106,6 +106,20 @@ PRIVATE int ansi_key_press(unsigned char ch)
 			KBUFFER_PUT(active->rinput, 'D');
 			is_ansi = 1;
 			break;
+		case KINS:
+			KBUFFER_PUT(active->rinput, ESC);
+			KBUFFER_PUT(active->rinput, '[');
+			KBUFFER_PUT(active->rinput, '2');
+			KBUFFER_PUT(active->rinput, '~');
+			is_ansi = 1;
+			break;
+		case KDEL:
+			KBUFFER_PUT(active->rinput, ESC);
+			KBUFFER_PUT(active->rinput, '[');
+			KBUFFER_PUT(active->rinput, '3');
+			KBUFFER_PUT(active->rinput, '~');
+			is_ansi = 1;
+			break;
 		case KPGUP:
 			KBUFFER_PUT(active->rinput, ESC);
 			KBUFFER_PUT(active->rinput, '[');
@@ -118,6 +132,18 @@ PRIVATE int ansi_key_press(unsigned char ch)
 			KBUFFER_PUT(active->rinput, '[');
 			KBUFFER_PUT(active->rinput, '6');
 			KBUFFER_PUT(active->rinput, '~');
+			is_ansi = 1;
+			break;
+		case KHOME:
+			KBUFFER_PUT(active->rinput, ESC);
+			KBUFFER_PUT(active->rinput, 'O');
+			KBUFFER_PUT(active->rinput, 'H');
+			is_ansi = 1;
+			break;
+		case KEND:
+			KBUFFER_PUT(active->rinput, ESC);
+			KBUFFER_PUT(active->rinput, 'O');
+			KBUFFER_PUT(active->rinput, 'F');
 			is_ansi = 1;
 			break;
 		default:

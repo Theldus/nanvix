@@ -184,18 +184,14 @@ PUBLIC void do_keyboard_hit(void)
 		/* Fall through. */
 		case KINS:
         case KDEL:
-        case KHOME:
-        case KEND:
-        	/*  TODO: implement. */
-            break;
-
-		/* Fall through. */
 		case KUP:
 		case KDOWN:
 		case KRIGHT:
 		case KLEFT:
 		case KPGUP:
         case KPGDN:
+		case KHOME:
+		case KEND:
 			tty_int(ascii_code);
         	break;
 
