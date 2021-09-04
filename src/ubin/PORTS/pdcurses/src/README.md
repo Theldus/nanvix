@@ -29,9 +29,9 @@ This software is provided AS IS with NO WARRANTY whatsoever.
 Ports
 -----
 
-PDCurses has been ported to DOS, OS/2, Windows, X11 and SDL. A directory
-containing the port-specific source files exists for each of these
-platforms.
+PDCurses has been ported to DOS, OS/2, Windows, X11, SDL and Nanvix.
+A directory containing the port-specific source files exists for each of
+these platforms.
 
 Build instructions are in the README.md file for each platform:
 
@@ -41,6 +41,7 @@ Build instructions are in the README.md file for each platform:
 -  [SDL 2.x]
 -  [Windows]
 -  [X11]
+-  [Nanvix]
 
 
 Distribution Status
@@ -63,3 +64,4 @@ William McBrine <wmcbrine@gmail.com>
 [SDL 2.x]: sdl2/README.md
 [Windows]: wincon/README.md
 [X11]: x11/README.md
+[Nanvix]: nanvix/README.md
