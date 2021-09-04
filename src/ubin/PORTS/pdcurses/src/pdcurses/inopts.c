@@ -133,6 +133,18 @@ int cbreak(void)
 
     SP->cbreak = TRUE;
 
+    /*
+     * I wasn't planning to modify PDCurses source, but...
+     * how should I deal with cbreak stuff without _any_
+     * form of callback? how it is expected to properly
+     * set my TTY without knowing when cbreak was or not
+     * enabled?.
+     */
+#if defined(__nanvix__)  || defined(NANVIX_PORT)
+    /* This routine should check for SP->cbreak. */
+    PDC_set_cbreak(TRUE);
+#endif
+
     return OK;
 }
 
@@ -145,6 +157,12 @@ int nocbreak(void)
 
     SP->cbreak = FALSE;
     SP->delaytenths = 0;
+
+    /* Please read the notes in cbreak(). */
+#if defined(__nanvix__)  || defined(NANVIX_PORT)
+    /* This routine should check for SP->cbreak. */
+    PDC_set_cbreak(FALSE);
+#endif
 
     return OK;
 }

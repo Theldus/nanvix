@@ -75,6 +75,7 @@ void    PDC_scr_close(void);
 void    PDC_scr_free(void);
 int     PDC_scr_open(void);
 void    PDC_set_keyboard_binary(bool);
+void    PDC_set_cbreak(bool);
 void    PDC_transform_line(int, int, int, const chtype *);
 const char *PDC_sysname(void);
 
