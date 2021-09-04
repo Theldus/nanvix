@@ -25,6 +25,7 @@ bochsout.txt
 bin/*
 bin/sbin/*
 bin/ubin/*
+binaries/
 doc/*-kernel
 *.bbl
 *.aux
