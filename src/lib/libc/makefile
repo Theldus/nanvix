@@ -34,6 +34,7 @@ C_SRC = $(wildcard *.c)            \
 	$(wildcard dirent/*.c)         \
 	$(wildcard errno/*.c)          \
 	$(wildcard fcntl/*.c)          \
+	$(wildcard libgen/*.c)         \
 	$(wildcard locale/*.c)         \
 	$(wildcard reent/*.c)          \
 	$(wildcard search/*.c)         \
