@@ -1,0 +1,64 @@
+diff --git a/src/nyancat.c b/src/nyancat.c
+index 537225c..7ba7b5b 100644
+--- a/src/nyancat.c
++++ b/src/nyancat.c
+@@ -65,9 +65,11 @@
+ #include <setjmp.h>
+ #include <getopt.h>
+ 
++#ifndef __nanvix__
+ #include <sys/ioctl.h>
++#endif
+ 
+-#ifndef TIOCGWINSZ
++#if !defined(TIOCGWINSZ) && !defined(__nanvix__)
+ #include <termios.h>
+ #endif
+ 
+@@ -213,6 +215,7 @@ void SIGPIPE_handler(int sig) {
+ 	finish();
+ }
+ 
++#ifndef __nanvix__
+ void SIGWINCH_handler(int sig) {
+ 	(void)sig;
+ 	struct winsize w;
+@@ -232,6 +235,7 @@ void SIGWINCH_handler(int sig) {
+ 
+ 	signal(SIGWINCH, SIGWINCH_handler);
+ }
++#endif
+ 
+ /*
+  * Telnet requires us to send a specific sequence
+@@ -571,6 +575,7 @@ int main(int argc, char ** argv) {
+ 	} else {
+ 		/* We are running standalone, retrieve the
+ 		 * terminal type from the environment. */
++#ifndef __nanvix__
+ 		term = getenv("TERM");
+ 
+ 		/* Also get the number of columns */
+@@ -578,6 +583,10 @@ int main(int argc, char ** argv) {
+ 		ioctl(0, TIOCGWINSZ, &w);
+ 		terminal_width = w.ws_col;
+ 		terminal_height = w.ws_row;
++#else
++		terminal_width = 80;
++		terminal_height = 25;
++#endif
+ 	}
+ 
+ 	/* Default ttype */
+@@ -624,9 +633,11 @@ int main(int argc, char ** argv) {
+ 	signal(SIGPIPE, SIGPIPE_handler);
+ 
+ 	/* Handle window changes */
++#ifndef __nanvix__
+ 	if (!telnet) {
+ 		signal(SIGWINCH, SIGWINCH_handler);
+ 	}
++#endif
+ 
+ 	switch (ttype) {
+ 		case 1:
