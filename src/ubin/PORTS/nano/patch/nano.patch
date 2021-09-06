@@ -1,0 +1,359 @@
+From 8bd09d0aeca826bcd6d22214fb102bab026a26e1 Mon Sep 17 00:00:00 2001
+From: Theldus <davidsondfgl@gmail.com>
+Date: Sun, 5 Sep 2021 17:33:49 -0300
+Subject: [PATCH] Nano v2.7.2 support
+
+This patch brings Nano v2.7.2 support to Nanvix.
+
+This patch applies the following modifications:
+- Add Nanvix to target list
+- Add pdcurses as the library to be linked
+- Fixes missing headers (strings.h)
+- Change lstat to stat, since Nanvix doesn't support lstat.
+  Importantly, there are almost no symlinks in the file system, I
+  wouldn't say this is a concern.
+- Switches the use of methods like getpwent() to getenv("HOME") in
+  the '~' resolution, since Nanvix doesn't supports these methods.
+- Disables linter, since 'undefined reference' occurs during builds.
+- Disable reading via stdin, this adds complexity to the code that I
+  don't want to have to deal with.
+- Change all calls from sigaction to signal, since Nanvix doesn't
+  support sigaction, and I'm too lazy to think about adding support.
+- Remove call to set_escdelay, as PDCurses does not support.
+- Removes the use of gobbling, as Nanvix doesn't support it either.
+  Because of this, files read via 'include' (inside nanorc) must
+  contain the full path. Credits to the Sortix patch since I based
+  on it.
+
+  Recommended build flags:
+  CFLAGS="-DDISABLE_LINTER" ./configure --host=i386-elf-nanvix \
+    --enable-tiny --disable-nls --enable-color --enable-nanorc \
+	--prefix="/" --enable-linenumbers
+---
+ config.sub   |  2 +-
+ configure    |  3 ++-
+ src/chars.c  |  1 +
+ src/files.c  | 13 ++++++++++---
+ src/global.c |  6 +++---
+ src/nano.c   | 40 +++++++++++++++++++---------------------
+ src/rcfile.c | 13 ++++++++++++-
+ src/text.c   |  2 +-
+ src/utils.c  |  4 ++++
+ 9 files changed, 53 insertions(+), 31 deletions(-)
+
+diff --git a/config.sub b/config.sub
+index 7ffe373..70abc43 100755
+--- a/config.sub
++++ b/config.sub
+@@ -1373,7 +1373,7 @@ case $os in
+ 	      | -hpux* | -unos* | -osf* | -luna* | -dgux* | -auroraux* | -solaris* \
+ 	      | -sym* | -kopensolaris* | -plan9* \
+ 	      | -amigaos* | -amigados* | -msdos* | -newsos* | -unicos* | -aof* \
+-	      | -aos* | -aros* \
++	      | -aos* | -aros* | -nanvix* \
+ 	      | -nindy* | -vxsim* | -vxworks* | -ebmon* | -hms* | -mvs* \
+ 	      | -clix* | -riscos* | -uniplus* | -iris* | -rtu* | -xenix* \
+ 	      | -hiux* | -386bsd* | -knetbsd* | -mirbsd* | -netbsd* \
+diff --git a/configure b/configure
+index dbc2f56..1eabc19 100755
+--- a/configure
++++ b/configure
+@@ -7423,7 +7423,8 @@ fi
+ 
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to use slang" >&5
+ $as_echo_n "checking whether to use slang... " >&6; }
+-CURSES_LIB_NAME=""
++CURSES_LIB_NAME="pdcurses"
++CURSES_LIB="-lpdcurses"
+ 
+ # Check whether --with-slang was given.
+ if test "${with_slang+set}" = set; then :
+diff --git a/src/chars.c b/src/chars.c
+index 4f12c5b..2e9891b 100644
+--- a/src/chars.c
++++ b/src/chars.c
+@@ -23,6 +23,7 @@
+ #include "proto.h"
+ 
+ #include <string.h>
++#include <strings.h>
+ #include <ctype.h>
+ 
+ #ifdef ENABLE_UTF8
+diff --git a/src/files.c b/src/files.c
+index 8955e19..4177761 100644
+--- a/src/files.c
++++ b/src/files.c
+@@ -1720,7 +1720,7 @@ bool write_file(const char *name, FILE *f_open, bool tmp,
+ #endif
+ 
+     /* If the temp file exists and isn't already open, give up. */
+-    if (tmp && (lstat(realname, &st) != -1) && f_open == NULL)
++    if (tmp && (stat(realname, &st) != -1) && f_open == NULL)
+ 	goto cleanup_and_exit;
+ 
+ #ifndef NANO_TINY
+@@ -2475,18 +2475,25 @@ char *real_dir_from_tilde(const char *buf)
+ 	    get_homedir();
+ 	    tilde_dir = mallocstrcpy(NULL, homedir);
+ 	} else {
++#ifndef __nanvix__
+ 	    const struct passwd *userdata;
++#endif
+ 
+ 	    tilde_dir = mallocstrncpy(NULL, buf, i + 1);
+ 	    tilde_dir[i] = '\0';
+ 
++#ifndef __nanvix__
+ 	    do {
+ 		userdata = getpwent();
+ 	    } while (userdata != NULL &&
+ 			strcmp(userdata->pw_name, tilde_dir + 1) != 0);
+ 	    endpwent();
+-	    if (userdata != NULL)
+-		tilde_dir = mallocstrcpy(tilde_dir, userdata->pw_dir);
++
++        if (userdata != NULL)
++        tilde_dir = mallocstrcpy(tilde_dir, userdata->pw_dir);
++#else
++        tilde_dir = mallocstrcpy(tilde_dir, "/home");
++#endif
+ 	}
+ 
+ 	retval = charalloc(strlen(tilde_dir) + strlen(buf + i) + 1);
+diff --git a/src/global.c b/src/global.c
+index e804b23..cb7aea6 100644
+--- a/src/global.c
++++ b/src/global.c
+@@ -744,7 +744,7 @@ void shortcut_init(void)
+ 	add_to_funcs(do_spell, MMAIN,
+ 		N_("To Spell"), IFSCHELP(nano_spell_msg), TOGETHER, NOVIEW);
+ #endif
+-#ifndef DISABLE_COLOR
++#if !defined(DISABLE_COLOR) && !defined(DISABLE_LINTER)
+ 	add_to_funcs(do_linter, MMAIN,
+ 		N_("To Linter"), IFSCHELP(nano_lint_msg), TOGETHER, NOVIEW);
+ #ifndef DISABLE_SPELLER
+@@ -1073,7 +1073,7 @@ void shortcut_init(void)
+     add_to_sclist(MMAIN, "^T", 0, do_spell, 0);
+     add_to_sclist(MMAIN, "F12", 0, do_spell, 0);
+ #else
+-#ifndef DISABLE_COLOR
++#if !defined(DISABLE_COLOR) && !defined(DISABLE_LINTER)
+     add_to_sclist(MMAIN, "^T", 0, do_linter, 0);
+     add_to_sclist(MMAIN, "F12", 0, do_linter, 0);
+ #endif
+@@ -1434,7 +1434,7 @@ sc *strtosc(const char *input)
+ 	     !strcasecmp(input, "speller"))
+ 	s->scfunc = do_spell;
+ #endif
+-#ifndef DISABLE_COLOR
++#if !defined(DISABLE_COLOR) && !defined(DISABLE_LINTER)
+     else if (!strcasecmp(input, "linter"))
+ 	s->scfunc = do_linter;
+ #endif
+diff --git a/src/nano.c b/src/nano.c
+index 0727c61..cf85e0d 100644
+--- a/src/nano.c
++++ b/src/nano.c
+@@ -1120,15 +1120,18 @@ void do_cancel(void)
+     ;
+ }
+ 
++#ifndef __nanvix__
+ static struct sigaction pager_oldaction, pager_newaction;
+ 	/* Original and temporary handlers for SIGINT. */
+ static bool pager_sig_failed = FALSE;
+ 	/* Did sigaction() fail without changing the signal handlers? */
+ static bool pager_input_aborted = FALSE;
+ 	/* Did someone invoke the pager and abort it via ^C? */
++#endif
+ 
+ /* Things which need to be run regardless of whether
+  * we finished the stdin pipe correctly or not. */
++#ifndef __nanvix__
+ void finish_stdin_pager(void)
+ {
+     FILE *f;
+@@ -1191,41 +1194,35 @@ void stdin_pager(void)
+     open_buffer("", FALSE);
+     finish_stdin_pager();
+ }
++#endif
+ 
+ /* Initialize the signal handlers. */
+ void signal_init(void)
+ {
+     /* Trap SIGINT and SIGQUIT because we want them to do useful things. */
+-    memset(&act, 0, sizeof(struct sigaction));
+-    act.sa_handler = SIG_IGN;
+-    sigaction(SIGINT, &act, NULL);
+-    sigaction(SIGQUIT, &act, NULL);
++    signal(SIGINT, SIG_IGN);
++    signal(SIGQUIT, SIG_IGN);
+ 
+     /* Trap SIGHUP and SIGTERM because we want to write the file out. */
+     act.sa_handler = handle_hupterm;
+-    sigaction(SIGHUP, &act, NULL);
+-    sigaction(SIGTERM, &act, NULL);
++    signal(SIGHUP, handle_hupterm);
++    signal(SIGTERM, handle_hupterm);
+ 
+ #ifndef NANO_TINY
+     /* Trap SIGWINCH because we want to handle window resizes. */
+-    act.sa_handler = handle_sigwinch;
+-    sigaction(SIGWINCH, &act, NULL);
++    signal(SIGWINCH, handle_sigwinch);
+ #endif
+ 
+     /* Trap normal suspend (^Z) so we can handle it ourselves. */
+     if (!ISSET(SUSPEND)) {
+-	act.sa_handler = SIG_IGN;
+-	sigaction(SIGTSTP, &act, NULL);
++	signal(SIGTSTP, SIG_IGN);
+     } else {
+ 	/* Block all other signals in the suspend and continue handlers.
+ 	 * If we don't do this, other stuff interrupts them! */
+-	sigfillset(&act.sa_mask);
+-
+-	act.sa_handler = do_suspend;
+-	sigaction(SIGTSTP, &act, NULL);
++	//sigfillset(&act.sa_mask);
+ 
+-	act.sa_handler = do_continue;
+-	sigaction(SIGCONT, &act, NULL);
++	signal(SIGTSTP, do_suspend);
++	signal(SIGCONT, do_continue);
+     }
+ }
+ 
+@@ -1236,7 +1233,7 @@ RETSIGTYPE handle_hupterm(int signal)
+ }
+ 
+ /* Handler for SIGTSTP (suspend). */
+-RETSIGTYPE do_suspend(int signal)
++RETSIGTYPE do_suspend(int signo)
+ {
+ #ifndef DISABLE_MOUSE
+     /* Turn mouse support off. */
+@@ -1256,9 +1253,8 @@ RETSIGTYPE do_suspend(int signal)
+ 
+     /* Trap SIGHUP and SIGTERM so we can properly deal with them while
+      * suspended. */
+-    act.sa_handler = handle_hupterm;
+-    sigaction(SIGHUP, &act, NULL);
+-    sigaction(SIGTERM, &act, NULL);
++    signal(SIGHUP, handle_hupterm);
++    signal(SIGTERM, handle_hupterm);
+ 
+     /* Do what mutt does: send ourselves a SIGSTOP. */
+     kill(0, SIGSTOP);
+@@ -2565,7 +2561,7 @@ int main(int argc, char **argv)
+ 
+ #ifndef USE_SLANG
+     /* Tell ncurses to pass the Esc key quickly. */
+-    set_escdelay(50);
++    //set_escdelay(50);
+ #endif
+ 
+ #ifdef DEBUG
+@@ -2581,11 +2577,13 @@ int main(int argc, char **argv)
+     }
+ 
+     /* If one of the arguments is a dash, read text from standard input. */
++#ifndef __nanvix__
+     if (optind < argc && !strcmp(argv[optind], "-")) {
+ 	stdin_pager();
+ 	set_modified();
+ 	optind++;
+     }
++#endif
+ 
+ #ifndef DISABLE_MULTIBUFFER
+     old_multibuffer = ISSET(MULTIBUFFER);
+diff --git a/src/rcfile.c b/src/rcfile.c
+index a9426d2..61dc2ef 100644
+--- a/src/rcfile.c
++++ b/src/rcfile.c
+@@ -23,9 +23,12 @@
+ 
+ #include "proto.h"
+ 
++#ifndef __nanvix__
+ #include <glob.h>
++#endif
+ #include <stdarg.h>
+ #include <string.h>
++#include <strings.h>
+ #include <stdio.h>
+ #include <errno.h>
+ #include <unistd.h>
+@@ -579,8 +582,11 @@ static void parse_one_include(char *file)
+ void parse_includes(char *ptr)
+ {
+     char *option, *nanorc_save = nanorc, *expanded;
+-    size_t lineno_save = lineno, i;
++    size_t lineno_save = lineno;
++#ifndef __nanvix__
++    size_t i;
+     glob_t files;
++#endif
+ 
+     option = ptr;
+     if (*option == '"')
+@@ -590,6 +596,7 @@ void parse_includes(char *ptr)
+     /* Expand tildes first, then the globs. */
+     expanded = real_dir_from_tilde(option);
+ 
++#ifndef __nanvix__
+     if (glob(expanded, GLOB_ERR|GLOB_NOSORT, NULL, &files) == 0) {
+ 	for (i = 0; i < files.gl_pathc; ++i)
+ 	    parse_one_include(files.gl_pathv[i]);
+@@ -597,6 +604,10 @@ void parse_includes(char *ptr)
+ 	rcfile_error(_("Error expanding %s: %s"), option, strerror(errno));
+ 
+     globfree(&files);
++#else
++    parse_one_include(expanded);
++#endif
++
+     free(expanded);
+ 
+     /* We're done with the included file(s).  Restore the original
+diff --git a/src/text.c b/src/text.c
+index c03f3d2..24cfe81 100644
+--- a/src/text.c
++++ b/src/text.c
+@@ -3152,7 +3152,7 @@ void do_spell(void)
+ }
+ #endif /* !DISABLE_SPELLER */
+ 
+-#ifndef DISABLE_COLOR
++#if !defined(DISABLE_COLOR) && !defined(DISABLE_LINTER)
+ /* Run a linting program on the current buffer.  Return NULL for normal
+  * termination, and the error string otherwise. */
+ void do_linter(void)
+diff --git a/src/utils.c b/src/utils.c
+index 7c61ceb..b02a5fc 100644
+--- a/src/utils.c
++++ b/src/utils.c
+@@ -38,12 +38,16 @@ void get_homedir(void)
+ 
+ 	/* When HOME isn't set, or when we're root, get the home directory
+ 	 * from the password file instead. */
++#ifndef __nanvix__
+ 	if (homenv == NULL || geteuid() == 0) {
+ 	    const struct passwd *userage = getpwuid(geteuid());
+ 
+ 	    if (userage != NULL)
+ 		homenv = userage->pw_dir;
+ 	}
++#else
++    homenv = "/home";
++#endif
+ 
+ 	/* Only set homedir if some home directory could be determined,
+ 	 * otherwise keep homedir NULL. */
+-- 
+2.11.0
+
