@@ -1,6 +1,5 @@
 /*
- * Copyright(C) 2011-2017 Pedro H. Penna   <pedrohenriquepenna@gmail.com>
- *              2016-2017 Davidson Francis <davidsondfgl@gmail.com>
+ * Copyright(C) 2021 Davidson Francis <davidsondfgl@gmail.com>
  * 
  * This file is part of Nanvix.
  * 
@@ -18,14 +17,38 @@
  * along with Nanvix. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <nanvix/syscall.h>
 #include <sys/stat.h>
+#include <errno.h>
+#include <reent.h>
 
 /*
- * STUB: File stat
+ * Gets file status.
  */
-int fstat(int file, struct stat *st)
+int fstat(int fd, struct stat *buf)
 {
-	((void)file);
-	st->st_mode = S_IFCHR;
-	return (0);
+	register int ret 
+		__asm__("r11") = NR_fstat;
+	register unsigned r3
+		__asm__("r3") = (unsigned) fd;
+	register unsigned r4
+		__asm__("r4") = (unsigned) buf;
+	
+	__asm__ volatile (
+		"l.sys 1"
+		: "=r" (ret)
+		: "r" (ret),
+		  "r" (r3),
+		  "r" (r4)
+	);
+	
+	/* Error. */
+	if (ret < 0)
+	{
+		errno = -ret;
+		_REENT->_errno = -ret;
+		return (-1);
+	}
+	
+	return (ret);
 }

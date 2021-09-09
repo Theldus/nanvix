@@ -35,7 +35,7 @@
 	#include <semaphore.h>
 
 	/* Number of system calls. */
-	#define NR_SYSCALLS 60
+	#define NR_SYSCALLS 61
 
 	/* System call numbers. */
 	#define NR_alarm     0
@@ -98,9 +98,10 @@
 	#define NR_acct     57
 	#define NR_rmdir    58
 	#define NR_nanosleep 59
- 	#define NR_semget   60
- 	#define NR_semctl   61
- 	#define NR_semop    62
+	#define NR_fstat    60
+ 	#define NR_semget   61
+ 	#define NR_semctl   62
+ 	#define NR_semop    63
 
 #ifndef _ASM_FILE_
 
@@ -313,6 +314,9 @@
 
 	/* Sleeps for a given amount of secs and nanosecs. */
 	EXTERN int sys_nanosleep(int tv_sec, int tv_nsec);
+	
+	/* Get file status. */
+	EXTERN int sys_fstat(int fd, struct stat *buf);
 
 #endif /* _ASM_FILE_ */
 
