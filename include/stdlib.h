@@ -1,18 +1,18 @@
 /*
  * Copyright(C) 2017 Davidson Francis <davidsondfgl@gmail.com>
- * 
+ *
  * This file is part of Nanvix.
- * 
+ *
  * Nanvix is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Nanvix is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Nanvix. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -25,7 +25,7 @@
  * of the BSD License.   This program is distributed in the hope that
  * it will be useful, but WITHOUT ANY WARRANTY expressed or implied,
  * including the implied warranties of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.  A copy of this license is available at 
+ * A PARTICULAR PURPOSE.  A copy of this license is available at
  * http://www.opensource.org/licenses. Any Red Hat trademarks that are
  * incorporated in the source code or documentation are not subject to
  * the BSD License and may only be used or replicated with the express
@@ -39,13 +39,13 @@
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
  *
- *     * Redistributions of source code must retain the above copyright notice, 
+ *     * Redistributions of source code must retain the above copyright notice,
  *       this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above copyright notice,
  *       this list of conditions and the following disclaimer in the documentation
  *       and/or other materials provided with the distribution.
- *     * Neither the name of the University nor the names of its contributors 
- *       may be used to endorse or promote products derived from this software 
+ *     * Neither the name of the University nor the names of its contributors
+ *       may be used to endorse or promote products derived from this software
  *       without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -62,7 +62,7 @@
 
 /**
  * @file
- * 
+ *
  * @brief Standard library definitions.
  */
 
@@ -109,7 +109,7 @@
  	/**
 	 * @brief Structure type returned by the div() function.
 	 */
-	typedef struct 
+	typedef struct
 	{
 	  int quot; /**< Quotient. */
 	  int rem; /**<  Remainder. */
@@ -118,7 +118,7 @@
 	/**
 	 * @brief Structure type returned by the ldiv() function.
 	 */
-	typedef struct 
+	typedef struct
 	{
 	  long quot; /**< Quotient. */
 	  long rem; /**<  Remainder. */
@@ -136,7 +136,7 @@
 
 	/**
 	 * @defgroup stdlib Standard Library
-	 * 
+	 *
 	 * @brief Standard library definitions.
 	 */
 	/**@{*/
@@ -150,7 +150,7 @@
 	extern int atoi(const char *);
 	extern long atol(const char *);
 	extern long long atoll(const char *);
-	extern void *bsearch(const void *, const void *, size_t, size_t, 
+	extern void *bsearch(const void *, const void *, size_t, size_t,
 		int (*)(const void *, const void *));
 	extern void *calloc(size_t, size_t);
 	extern div_t div(int, int);
@@ -165,7 +165,7 @@
 	extern int mblen(const char *, size_t);
 	extern size_t mbstowcs(wchar_t *, const char *, size_t);
 	extern int mbtowc(wchar_t *, const char *, size_t);
-	extern void qsort(void *, size_t, size_t, 
+	extern void qsort(void *, size_t, size_t,
 		int (*)(const void *, const void *));
 	extern int rand(void);
 	extern void *realloc(void *, size_t);
@@ -205,7 +205,7 @@
 	extern char *_dtoa_r(struct _reent *, double, int, int, int *, int *, char **);
 	extern char *_findenv_r(struct _reent *, const char *, int *);
 	extern char *_getenv_r(struct _reent *, const char *);
-	extern double _strtod_r(struct _reent *, const char *, 
+	extern double _strtod_r(struct _reent *, const char *,
 		char **);
 	extern int mkstemp(char *);
 	extern int _setenv_r(struct _reent *, const char *, const char *, int);
@@ -222,6 +222,9 @@
 	extern void *_calloc_r(struct _reent *, size_t, size_t);
 	extern void *_malloc_r(struct _reent *, size_t);
 	extern void *_realloc_r(struct _reent *, void *, size_t);
+
+	/* Some extra extensions... */
+	extern char *realpath(const char *__restrict, char  *__restrict);
 
 	/**@}*/
 
