@@ -2,26 +2,26 @@
  * Copyright(C) 2011-2017 Pedro H. Penna <pedrohenriquepenna@gmail.com>
  *              2017-2017 Romane Gallier <romanegallier@gmail.com>
  *              2017-2017 Clement Rouquier <clementrouquier@gmail.com>
- * 
+ *
  * This file is part of Nanvix.
- * 
+ *
  * Nanvix is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Nanvix is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Nanvix. If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef CONFIG_H_
 #define CONFIG_H_
-	
+
 	/**
 	 * @brief Machine configuration.
 	 */
@@ -32,7 +32,7 @@
 	#define MEMORY_SIZE  0x10000000 /**< Memory size (in bytes).    */
 	#define HDD_SIZE      0x4000000 /**< Hard disk size (in bytes). */
 	/**@}*/
-	
+
 	/**
 	 * @brief Kernel configuration.
 	 */
@@ -40,7 +40,6 @@
 	#define MULTIUSER                    0 /**< Multiuser support?                 */
 	#define KERNEL_VERSION           "2.0" /**< Kernel version.                    */
 	#define PROC_MAX                    64 /**< Maximum number of process.         */
-	#define PROC_SIZE_MAX  (MEMORY_SIZE/8) /**< Maximum process size.              */
 	#define RAMDISK_SIZE         0x4000000 /**< RAM disks size.                    */
 	#define INITRD_SIZE          0x4000000 /**< Init RAM disk size.                */
 	#define NR_INODES                 1024 /**< Number of in-core inodes.          */
