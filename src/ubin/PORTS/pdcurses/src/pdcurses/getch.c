@@ -395,8 +395,11 @@ int wgetch(WINDOW *win)
         }
 
         /* if there is, fetch it */
-
+#if defined(__nanvix__)  || defined(NANVIX_PORT)
+        key = PDC_get_key(win);
+#else
         key = PDC_get_key();
+#endif
 
         /* copy or paste? */
 

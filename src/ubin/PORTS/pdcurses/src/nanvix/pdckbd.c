@@ -6,7 +6,9 @@
 
 #define ESC '\x1b'
 
-static unsigned char last_key[8];
+static unsigned char last_keystroke[8]; 
+static int keys_amnt   = 0;
+static int key_pos     = 0;
 static int rawmode     = 0;
 static int cbreak_mode = 0;
 
@@ -34,8 +36,7 @@ void _enable_raw(int c_lflag)
     raw.c_cc[VTIME] = 0;
 
     /* put terminal in raw mode after flushing */
-    if (tcsetattr(STDIN_FILENO, TCSANOW, &raw) < 0)
-        return;
+    tcsetattr(STDIN_FILENO, TCSANOW, &raw);
 }
 
 /* set keyboard binary wrapper. */
@@ -94,12 +95,19 @@ void PDC_set_cbreak(bool on)
 
 bool PDC_check_key(void)
 {
-    int ret;
+    /* If there are pending keys to be read. */
+    if (key_pos < keys_amnt)
+        return TRUE;
 
-    memset(last_key, 0, sizeof(last_key));
-    ret = read(STDIN_FILENO, last_key, sizeof(last_key));
-    if (!ret)
+    memset(last_keystroke, 0, sizeof(last_keystroke));
+    keys_amnt = read(STDIN_FILENO, last_keystroke, sizeof(last_keystroke));
+    key_pos   = 0;
+
+    if (keys_amnt <= 0)
+    {
+        keys_amnt = 0;
         return FALSE;
+    }
 
     /*
      * Thankfully, our non-blocking read also _saves_ the
@@ -126,43 +134,105 @@ bool PDC_check_key(void)
 
 /* return the next available key or mouse event */
 
-int PDC_get_key(void)
+int PDC_get_key(WINDOW *win)
 {
+    int ret_key;
+
+    if (key_pos >= keys_amnt)
+        return (-1);
+
     /* We do not use this. */
     SP->key_modifiers = 0;
 
-    /* Interpret byte sequence. */
-    if (last_key[0] != ESC)
+    /*
+     * Check if we have to return the raw read key, or the cooked.
+     *    _use_keypad == true, cooked
+     *    _use_keypad == false, escape sequence, 1 char per time
+     *
+     * _use_keypad is set by invoking keypad(win, true)
+     *
+     * By default _use_keypad is false!.
+     */
+    if (!win->_use_keypad)
     {
         /*
-         * Nanvix always returns '\n', regardless in rawmode or
-         * not, so we need to convert \n to carriage return.
+         * Convert to \n or \r if needed.
          */
-        if (last_key[0] == '\n')
-            return '\r';
+        if (last_keystroke[key_pos] == '\r' || last_keystroke[key_pos] == '\n')
+        {
+            if (SP->autocr)
+                ret_key = '\n';
+            else
+                ret_key = '\r';
+        }
+        else
+            ret_key = last_keystroke[key_pos];
+
+        key_pos++;
+        return (ret_key);
+    }
+
+    /*
+     * If (keypad == true) mode but ALT key, return like cooked.
+     *
+     * Some observations need to be done here:
+     * Although PDCurses provides keys for ALT+key, this is a
+     * unique feature of PDCurses, and therefore we should not
+     * use it unless explicitly required (via
+     * -DUSE_PDCURSES_SPECIFIC_KEYS).
+     *
+     * Therefore, when receiving an ALT+key, we will emit an
+     * escape sequence regardless of which mode we are in.
+     */
+    if (keys_amnt == 2 && last_keystroke[0] == ESC &&
+        isgraph(last_keystroke[1]))
+    {
+        ret_key = last_keystroke[key_pos];
+        key_pos++;
+        return (ret_key);
+    }
+
+    /* === Anything else === */
+    key_pos = keys_amnt;
+
+    /* Interpret byte sequence. */
+    if (last_keystroke[0] != ESC)
+    {
+        /*
+         * Convert to \n or \r if needed.
+         */
+        if (last_keystroke[0] == '\r' || last_keystroke[0] == '\n')
+        {
+            if (SP->autocr)
+                ret_key = '\n';
+            else
+                ret_key = '\r';
+        }
+        else
+            ret_key = last_keystroke[0];
 
         /*
          * Nanvix already returns the 'cooked' character (unless
          * in escape sequence), so we don't need an intermediate
          * table to convert anything.
          */
-        return last_key[0];
+        return ret_key;
     }
 
     /* ESC sequences. */
-    if (last_key[1] == 0) return ESC;
+    if (last_keystroke[1] == 0) return ESC;
 
     /* ESC [ sequences. */
-    if (last_key[1] == '[')
+    if (last_keystroke[1] == '[')
     {
-        if (last_key[2] >= '0' && last_key[2] <= '9')
+        if (last_keystroke[2] >= '0' && last_keystroke[2] <= '9')
         {
             /* Extended escape. */
-            if (last_key[3] == 0) return ESC;
+            if (last_keystroke[3] == 0) return ESC;
 
-            if (last_key[3] == '~')
+            if (last_keystroke[3] == '~')
             {
-                switch (last_key[2])
+                switch (last_keystroke[2])
                 {
                     case '2': return KEY_IC;
                     case '3': return KEY_DC;
@@ -175,7 +245,7 @@ int PDC_get_key(void)
         /* Arrows, HOME and END keys. */
         else
         {
-            switch (last_key[2])
+            switch (last_keystroke[2])
             {
                 case 'A': return KEY_UP;
                 case 'B': return KEY_DOWN;
@@ -186,27 +256,30 @@ int PDC_get_key(void)
     }
 
     /* Maybe ESC 0 sequences. */
-    else if (last_key[1] == 'O')
+    else if (last_keystroke[1] == 'O')
     {
-        switch (last_key[2])
+        switch (last_keystroke[2])
         {
             case 'H': return KEY_HOME;
             case 'F': return KEY_END;
         }
     }
 
+    /* Only PDCurses have dedicated keys for ALT =/. */
+#ifdef USE_PDCURSES_SPECIFIC_KEYS
     /* Maybe ALT?. */
-    else if (isalnum(last_key[1]))
+    else if (isalnum(last_keystroke[1]))
     {
-        if (isdigit(last_key[1]))
-            return last_key[1] + (ALT_0 - '0');
+        if (isdigit(last_keystroke[1]))
+            return last_keystroke[1] + (ALT_0 - '0');
 
         else
         {
-            int ch = tolower(last_key[1]);
+            int ch = tolower(last_keystroke[1]);
             return ch + (ALT_A - 'a');
         }
     }
+#endif
 
     return (-1);
 }
@@ -219,7 +292,11 @@ void PDC_flushinp(void)
     PDC_LOG(("PDC_flushinp() - called\n"));
 
     /* Same trick as SDL1 port. */
-    while (PDC_check_key());
+    do
+    {
+        keys_amnt = 0;
+        key_pos   = 0;
+    } while (PDC_check_key());
 }
 
 bool PDC_has_mouse(void)

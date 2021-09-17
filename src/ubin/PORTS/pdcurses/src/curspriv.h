@@ -55,7 +55,11 @@ void    PDC_doupdate(void);
 void    PDC_flushinp(void);
 int     PDC_get_columns(void);
 int     PDC_get_cursor_mode(void);
+#if defined(__nanvix__)  || defined(NANVIX_PORT)
+int     PDC_get_key(WINDOW *);
+#else
 int     PDC_get_key(void);
+#endif
 int     PDC_get_rows(void);
 void    PDC_gotoyx(int, int);
 bool    PDC_has_mouse(void);
