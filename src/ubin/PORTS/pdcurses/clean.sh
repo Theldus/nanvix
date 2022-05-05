@@ -30,9 +30,17 @@ rm -rf "$CURDIR"/src/nanvix/*.o
 # Uninstall from the Nanvix GCC sysroot path too
 #
 GCC_PATH=$(i386-elf-nanvix-gcc -v |& grep -Po "sysroot=(.+)--disable-nls" | \
-	cut -d'=' -f2 | sed "s/ --disable-nls//g")
+	cut -d'=' -f2 | cut -d' ' -f1)
 
-rm "$GCC_PATH"/usr/lib/libpdcurses.a
-rm "$GCC_PATH"/usr/include/{curses.h,curspriv.h,panel.h}
+# Check the user owner before trying to copy
+SUDO=
+USER=$(stat -c '%U' $GCC_PATH)
+if [ "$USER" = "root" ]
+then
+	SUDO=sudo
+fi
+
+$SUDO rm "$GCC_PATH"/usr/lib/libpdcurses.a
+$SUDO rm "$GCC_PATH"/usr/include/{curses.h,curspriv.h,panel.h}
 
 echo "PDCurses successfully deleted"

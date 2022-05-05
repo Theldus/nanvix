@@ -49,12 +49,20 @@ cp ../curses.h ../curspriv.h ../panel.h "$PREFIX"/usr/include
 # host compiler sysroot path
 #
 GCC_PATH=$(i386-elf-nanvix-gcc -v |& grep -Po "sysroot=(.+)--disable-nls" | \
-	cut -d'=' -f2 | sed "s/ --disable-nls//g")
+	cut -d'=' -f2 | cut -d' ' -f1)
 
-cp "$PREFIX"/lib/libpdcurses.a "$GCC_PATH"/usr/lib
-cp "$PREFIX"/usr/include/curses.h "$GCC_PATH"/usr/include
-cp "$PREFIX"/usr/include/curspriv.h "$GCC_PATH"/usr/include
-cp "$PREFIX"/usr/include/panel.h "$GCC_PATH"/usr/include
+# Check the user owner before trying to copy
+SUDO=
+USER=$(stat -c '%U' $GCC_PATH)
+if [ "$USER" = "root" ]
+then
+	SUDO=sudo
+fi
+
+$SUDO cp "$PREFIX"/lib/libpdcurses.a "$GCC_PATH"/usr/lib
+$SUDO cp "$PREFIX"/usr/include/curses.h "$GCC_PATH"/usr/include
+$SUDO cp "$PREFIX"/usr/include/curspriv.h "$GCC_PATH"/usr/include
+$SUDO cp "$PREFIX"/usr/include/panel.h "$GCC_PATH"/usr/include
 
 # Return
 popd
