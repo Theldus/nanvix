@@ -106,3 +106,16 @@ diff -ruN old-gcc-6.4.0/libstdc++-v3/crossconfig.m4 gcc-6.4.0/libstdc++-v3/cross
    *-vxworks)
      AC_DEFINE(HAVE_ACOSF)
      AC_DEFINE(HAVE_ASINF)
+diff -ruN old-gcc-6.4.0/gcc/graphite.h gcc-6.4.0/gcc/graphite.h
+--- old-gcc-6.4.0/gcc/graphite.h  2016-01-25 22:19:20.909140000 -0200
++++ gcc-6.4.0/gcc/graphite.h 2022-05-05 13:02:25.772108249 -0300
+@@ -37,6 +37,9 @@
+ #include <isl/schedule.h>
+ #include <isl/ast_build.h>
+
++#include <isl/id.h>
++#include <isl/space.h>
++
+ #ifdef HAVE_ISL_OPTIONS_SET_SCHEDULE_SERIALIZE_SCCS
+ /* isl 0.15 or later.  */
+ #include <isl/schedule_node.h>
