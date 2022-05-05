@@ -20,6 +20,7 @@
 
 #include <assert.h>
 #include <nanvix/config.h>
+#include <nanvix/mm.h>
 #include <sys/times.h>
 #include <sys/wait.h>
 #include <sys/sem.h>
