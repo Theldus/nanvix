@@ -73,7 +73,7 @@ the following commands.
 - To get the development environment setup:
   ```bash
   $ cd path/folder-name
-  $ sudo bash tools/dev/setup-toolchain.sh
+  $ sudo bash tools/dev/setup-toolchain.sh           # (distro specific, currently Ubuntu and Arch)
   $ sudo bash tools/dev/arch/setup-toolchain-i386.sh
   $ sudo bash tools/dev/setup-qemu.sh
   ```
@@ -92,7 +92,7 @@ end of the script execution, usually something like:
   ```bash
   $ cd path/folder-name
   $ make nanvix > /dev/null
-  $ sudo make image
+  $ make image
   ```
 
 - To run Nanvix on a virtual machine:
