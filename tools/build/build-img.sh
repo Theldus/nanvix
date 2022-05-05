@@ -1,5 +1,5 @@
-# 
-# Copyright(C) 2011-2018 Pedro H. Penna   <pedrohenriquepenna@gmail.com> 
+#
+# Copyright(C) 2011-2018 Pedro H. Penna   <pedrohenriquepenna@gmail.com>
 #              2016-2018 Davidson Francis <davidsondfgl@gmail.com>
 #
 # This file is part of Nanvix.
@@ -68,14 +68,14 @@ function eject {
 function passwords
 {
 	file="passwords"
-	
+
 	$QEMU_VIRT bin/useradd $file root root $ROOTGID $ROOTUID
 	$QEMU_VIRT bin/useradd $file noob noob $NOOBUID $NOOBUID
 
 	chmod 600 $file
-	
+
 	$QEMU_VIRT bin/cp.minix $1 $file /etc/$file $ROOTUID $ROOTGID
-	
+
 	# House keeping.
 	rm -f $file
 }
@@ -161,18 +161,18 @@ function copy_files
 {
 	chmod 666 tools/img/inittab
 	chmod 600 tools/img/inittab
-	
+
 	$QEMU_VIRT bin/cp.minix $1 tools/img/inittab /etc/inittab $ROOTUID $ROOTGID
-	
+
 	passwords $1
-	
+
 	for file in bin/sbin/*; do
 		filename=`basename $file`
 		if [[ "$filename" != *.sym ]]; then
 			$QEMU_VIRT bin/cp.minix $1 $file /sbin/$filename $ROOTUID $ROOTGID
 		fi;
 	done
-	
+
 	for file in bin/ubin/*; do
 		filename=`basename $file`
 		if [[ "$filename" != *.sym ]]; then
@@ -219,6 +219,16 @@ function strip_binary
 # Build live nanvix image.
 if [ "$1" = "--build-iso" ];
 then
+
+	#
+	# There are differences between the binaries provided by
+	# cdrtools and cdrkit.
+	#
+	GENISOIMAGE=genisoimage
+	if ! [ -x "$(command -v genisoimage)" ]; then
+		GENISOIMAGE=mkisofs
+	fi
+
 	strip_binary bin/kernel
 
 	mkdir -p nanvix-iso/boot/grub
@@ -227,7 +237,7 @@ then
 	cp tools/img/menu.lst nanvix-iso/boot/grub/menu.lst
 	cp tools/img/stage2_eltorito nanvix-iso/boot/grub/stage2_eltorito
 	sed -i 's/fd0/cd/g' nanvix-iso/boot/grub/menu.lst
-	genisoimage -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 \
+	$GENISOIMAGE -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 \
 		-input-charset utf-8 -boot-info-table -o nanvix.iso nanvix-iso
 elif [ "$1" = "--build-floppy" ];
 then
@@ -272,5 +282,5 @@ else
 		echo "INITRD SIZE is $initrdsize"
 		rm *.img
 		exit -1
-	fi 
+	fi
 fi
