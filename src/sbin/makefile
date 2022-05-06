@@ -21,7 +21,7 @@
 
 # Toolchain configuration.
 export CC     = $(TARGET)-elf-nanvix-gcc
-export CFLAGS = -Os -D_POSIX_C_SOURCE -D_POSIX_THREADS -U__STRICT_ANSI__
+export CFLAGS = -Os -D_POSIX_C_SOURCE -U__STRICT_ANSI__
 
 # Resolves conflicts
 .PHONY: foobar
