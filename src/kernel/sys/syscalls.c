@@ -87,5 +87,6 @@ PUBLIC void (*syscalls_table[NR_SYSCALLS])(void)  = {
 	(void (*)(void))&sys_acct,
 	(void (*)(void))&sys_rmdir,
 	(void (*)(void))&sys_nanosleep,
-	(void (*)(void))&sys_fstat
+	(void (*)(void))&sys_fstat,
+	(void (*)(void))&sys_dup
 };

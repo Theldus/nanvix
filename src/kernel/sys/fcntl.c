@@ -104,3 +104,11 @@ PUBLIC int sys_fcntl(int fd, int cmd, int arg)
 			return (-EINVAL);
 	};
 }
+
+/*
+ * Duplicates a file descriptor.
+ */
+EXTERN int sys_dup(int oldfd)
+{
+	return (sys_fcntl(oldfd, F_DUPFD, 0));
+}

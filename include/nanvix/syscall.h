@@ -35,7 +35,7 @@
 	#include <semaphore.h>
 
 	/* Number of system calls. */
-	#define NR_SYSCALLS 61
+	#define NR_SYSCALLS 62
 
 	/* System call numbers. */
 	#define NR_alarm     0
@@ -99,6 +99,7 @@
 	#define NR_rmdir    58
 	#define NR_nanosleep 59
 	#define NR_fstat    60
+	#define NR_dup      61
  	#define NR_semget   61
  	#define NR_semctl   62
  	#define NR_semop    63
@@ -317,6 +318,11 @@
 	
 	/* Get file status. */
 	EXTERN int sys_fstat(int fd, struct stat *buf);
+
+	/*
+	 * Duplicates a file descriptor.
+	 */
+	EXTERN int sys_dup(int oldfd);
 
 #endif /* _ASM_FILE_ */
 
