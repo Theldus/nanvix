@@ -22,7 +22,7 @@
 #ifndef _ASM_FILE_
 
 	/* Length of strings in utsname structure */
-	#define _UTSNAME_LENGTH 9
+	#define _UTSNAME_LENGTH 16
 
 	/*
 	 * System name structure.

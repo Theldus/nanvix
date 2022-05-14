@@ -28,6 +28,8 @@
  */
 PRIVATE void do_uname(struct utsname *name)
 {
+	kmemset(name, 0, sizeof(*name));	
+
 	/* Fill up utsname structure. */
 	kstrncpy(name->sysname, SYSNAME, _UTSNAME_LENGTH);
 	kstrncpy(name->nodename, NODENAME, _UTSNAME_LENGTH);
