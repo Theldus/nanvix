@@ -706,7 +706,7 @@ PUBLIC int vfault(addr_t addr)
 			 */
 			if (allocupg(addr, reg->mode & MAY_WRITE))
 				goto error1;
-			addr -= PAGE_SIZE;
+			addr += PAGE_SIZE;
 			i++;
 		}
 		while (i < page_count);
