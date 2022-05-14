@@ -502,7 +502,8 @@ PUBLIC void markpg(struct pte *pg, int mark)
 {
 	/* Bad page. */
 	if (pte_is_present(pg))
-		kpanic("mm: demand fill on a present page");
+		kpanic("mm: demand %s on a present page",
+			(mark == PAGE_FILL ? "fill" : "zero"));
 	
 	/* Mark page. */
 	switch (mark)
