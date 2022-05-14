@@ -639,7 +639,7 @@ PUBLIC int vfault(addr_t addr)
 	 * Number of attempts to allocate a faulting page to a (possible)
 	 * stack.
 	 */
-	#define THRESHOLD_ATTEMPTS 4
+	#define THRESHOLD_ATTEMPTS 16
 
 	/* Get process region. */
 	if ((preg = findreg(curr_proc, addr)) != NULL)
@@ -654,7 +654,7 @@ PUBLIC int vfault(addr_t addr)
 		 *
 		 * Note that the ideal here would be try to allocate
 		 * until the number of pages match the faulting
-		 * address, but I will limit to 4 attempts, i.e: 4 pages
+		 * address, but I will limit to 16 attempts, i.e: 16 pages
 		 * per time.
 		 */
 		do
@@ -664,7 +664,7 @@ PUBLIC int vfault(addr_t addr)
 		while (threshold++ < THRESHOLD_ATTEMPTS &&
 			(preg = findreg(curr_proc, addr2)) == NULL);
 
-		/* If 32kB is not enough, lets throw an error. */
+		/* If 64kB is not enough, lets throw an error. */
 		if (preg == NULL)
 			goto error0;
 		
