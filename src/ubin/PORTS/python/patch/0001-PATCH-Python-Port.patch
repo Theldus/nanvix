@@ -1,0 +1,525 @@
+From cc99161b6add431faa1627d460d9c847796a441a Mon Sep 17 00:00:00 2001
+From: Davidson Francis <davidsondfgl@gmail.com>
+Date: Sun, 15 May 2022 23:20:45 -0300
+Subject: [PATCH] Python Port
+
+Signed-off-by: Davidson Francis <davidsondfgl@gmail.com>
+---
+ Include/pystate.h     | 12 ++++++++++
+ Lib/_bootlocale.py    |  1 +
+ Lib/locale.py         |  3 ++-
+ Modules/Setup.dist    | 55 ++++++++++++++++++++++---------------------
+ Modules/posixmodule.c | 10 ++++----
+ Modules/pwdmodule.c   | 10 ++++++++
+ Modules/timemodule.c  |  6 +++++
+ Python/pylifecycle.c  | 10 ++++++++
+ Python/pystate.c      | 21 +++++++++++++++++
+ Python/pytime.c       | 13 ++++++++++
+ Python/random.c       | 11 +++++++++
+ config.sub            |  2 +-
+ configure             | 17 +++++++++----
+ configure.ac          | 11 ++++++++-
+ 14 files changed, 143 insertions(+), 39 deletions(-)
+
+diff --git a/Include/pystate.h b/Include/pystate.h
+index 1838fa4048..100e8668d4 100644
+--- a/Include/pystate.h
++++ b/Include/pystate.h
+@@ -293,6 +293,18 @@ PyAPI_FUNC(int) PyGILState_Check(void);
+ PyAPI_FUNC(PyInterpreterState *) _PyGILState_GetInterpreterStateUnsafe(void);
+ #endif
+ 
++#else /* ! WITH_THREAD. */
++
++/*
++Python3.6 seems dumb, as it tries to use PyGIL* routines even then
++WITH_THREAD is not defined, so we need to export some functions
++again..... this looks so wrong.
++*/
++
++PyAPI_FUNC(PyThreadState *) PyGILState_GetThisThreadState(void);
++PyAPI_FUNC(PyGILState_STATE) PyGILState_Ensure(void);
++PyAPI_FUNC(void) PyGILState_Release(PyGILState_STATE);
++
+ #endif   /* #ifdef WITH_THREAD */
+ 
+ /* The implementation of sys._current_frames()  Returns a dict mapping
+diff --git a/Lib/_bootlocale.py b/Lib/_bootlocale.py
+index 4bccac1139..5a1288264d 100644
+--- a/Lib/_bootlocale.py
++++ b/Lib/_bootlocale.py
+@@ -22,6 +22,7 @@ else:
+     else:
+         def getpreferredencoding(do_setlocale=True):
+             assert not do_setlocale
++            return 'UTF-8'
+             result = _locale.nl_langinfo(_locale.CODESET)
+             if not result and sys.platform == 'darwin':
+                 # nl_langinfo can return an empty string
+diff --git a/Lib/locale.py b/Lib/locale.py
+index e85f34ea19..3722ad18f3 100644
+--- a/Lib/locale.py
++++ b/Lib/locale.py
+@@ -626,11 +626,12 @@ else:
+             if res is None:
+                 # LANG not set, default conservatively to ASCII
+                 res = 'ascii'
+-            return res
++            return 'UTF-8'
+     else:
+         def getpreferredencoding(do_setlocale = True):
+             """Return the charset that the user is likely using,
+             according to the system configuration."""
++            return 'UTF-8'
+             import _bootlocale
+             if do_setlocale:
+                 oldloc = setlocale(LC_CTYPE)
+diff --git a/Modules/Setup.dist b/Modules/Setup.dist
+index e469d5e4c8..061ef849ec 100644
+--- a/Modules/Setup.dist
++++ b/Modules/Setup.dist
+@@ -155,6 +155,7 @@ _symtable symtablemodule.c
+ # detail; also note that *static* reverses this effect):
+ 
+ #*shared*
++*static*
+ 
+ # GNU readline.  Unlike previous Python incarnations, GNU readline is
+ # now incorporated in an optional module, configured in the Setup file
+@@ -169,18 +170,18 @@ _symtable symtablemodule.c
+ 
+ # Modules that should always be present (non UNIX dependent):
+ 
+-#array arraymodule.c	# array objects
+-#cmath cmathmodule.c _math.c # -lm # complex math library functions
+-#math mathmodule.c _math.c # -lm # math library functions, e.g. sin()
+-#_struct _struct.c	# binary structure packing/unpacking
+-#_weakref _weakref.c	# basic weak reference support
++array arraymodule.c	# array objects
++cmath cmathmodule.c _math.c # -lm # complex math library functions
++math mathmodule.c _math.c # -lm # math library functions, e.g. sin()
++_struct _struct.c	# binary structure packing/unpacking
++_weakref _weakref.c	# basic weak reference support
+ #_testcapi _testcapimodule.c    # Python C API test module
+-#_random _randommodule.c	# Random number generator
++_random _randommodule.c	# Random number generator
+ #_elementtree -I$(srcdir)/Modules/expat -DHAVE_EXPAT_CONFIG_H -DUSE_PYEXPAT_CAPI _elementtree.c	# elementtree accelerator
+-#_pickle _pickle.c	# pickle accelerator
+-#_datetime _datetimemodule.c	# datetime accelerator
+-#_bisect _bisectmodule.c	# Bisection algorithms
+-#_heapq _heapqmodule.c	# Heap queue algorithm
++_pickle _pickle.c	# pickle accelerator
++_datetime _datetimemodule.c	# datetime accelerator
++_bisect _bisectmodule.c	# Bisection algorithms
++_heapq _heapqmodule.c	# Heap queue algorithm
+ #_asyncio _asynciomodule.c  # Fast asyncio Future
+ 
+ #unicodedata unicodedata.c    # static Unicode character database
+@@ -199,7 +200,7 @@ _symtable symtablemodule.c
+ #mmap mmapmodule.c
+ 
+ # CSV file helper
+-#_csv _csv.c
++_csv _csv.c
+ 
+ # Socket module helper for socket(2)
+ #_socket socketmodule.c
+@@ -242,18 +243,18 @@ _symtable symtablemodule.c
+ # The _md5 module implements the RSA Data Security, Inc. MD5
+ # Message-Digest Algorithm, described in RFC 1321.
+ 
+-#_md5 md5module.c
++_md5 md5module.c
+ 
+ 
+ # The _sha module implements the SHA checksum algorithms.
+ # (NIST's Secure Hash Algorithms.)
+-#_sha1 sha1module.c
+-#_sha256 sha256module.c
+-#_sha512 sha512module.c
+-#_sha3 _sha3/sha3module.c
++_sha1 sha1module.c
++_sha256 sha256module.c
++_sha512 sha512module.c
++_sha3 _sha3/sha3module.c
+ 
+ # _blake module
+-#_blake2 _blake2/blake2module.c _blake2/blake2b_impl.c _blake2/blake2s_impl.c
++_blake2 _blake2/blake2module.c _blake2/blake2b_impl.c _blake2/blake2s_impl.c
+ 
+ # The _tkinter module.
+ #
+@@ -337,10 +338,10 @@ _symtable symtablemodule.c
+ 
+ 
+ # Helper module for various ascii-encoders
+-#binascii binascii.c
++binascii binascii.c
+ 
+ # Fred Drake's interface to the Python parser
+-#parser parsermodule.c
++parser parsermodule.c
+ 
+ 
+ # Lee Busby's SIGFPE modules.
+@@ -373,14 +374,14 @@ _symtable symtablemodule.c
+ # Hye-Shik Chang's CJKCodecs
+ 
+ # multibytecodec is required for all the other CJK codec modules
+-#_multibytecodec cjkcodecs/multibytecodec.c
+-
+-#_codecs_cn cjkcodecs/_codecs_cn.c
+-#_codecs_hk cjkcodecs/_codecs_hk.c
+-#_codecs_iso2022 cjkcodecs/_codecs_iso2022.c
+-#_codecs_jp cjkcodecs/_codecs_jp.c
+-#_codecs_kr cjkcodecs/_codecs_kr.c
+-#_codecs_tw cjkcodecs/_codecs_tw.c
++_multibytecodec cjkcodecs/multibytecodec.c
++
++_codecs_cn cjkcodecs/_codecs_cn.c
++_codecs_hk cjkcodecs/_codecs_hk.c
++_codecs_iso2022 cjkcodecs/_codecs_iso2022.c
++_codecs_jp cjkcodecs/_codecs_jp.c
++_codecs_kr cjkcodecs/_codecs_kr.c
++_codecs_tw cjkcodecs/_codecs_tw.c
+ 
+ # Example -- included for reference only:
+ # xx xxmodule.c
+diff --git a/Modules/posixmodule.c b/Modules/posixmodule.c
+index 776a3d249a..08797c8971 100644
+--- a/Modules/posixmodule.c
++++ b/Modules/posixmodule.c
+@@ -183,17 +183,17 @@ corresponding Unix manual entries for more information on calls.");
+ #if defined(__USLC__) && defined(__SCO_VERSION__)       /* SCO UDK Compiler */
+ #define HAVE_FORK1      1
+ #endif
+-#define HAVE_GETEGID    1
+-#define HAVE_GETEUID    1
+-#define HAVE_GETGID     1
+-#define HAVE_GETPPID    1
++//#define HAVE_GETEGID    1
++//#define HAVE_GETEUID    1
++//#define HAVE_GETGID     1
++//#define HAVE_GETPPID    1
+ #define HAVE_GETUID     1
+ #define HAVE_KILL       1
+ #define HAVE_OPENDIR    1
+ #define HAVE_PIPE       1
+ #define HAVE_SYSTEM     1
+ #define HAVE_WAIT       1
+-#define HAVE_TTYNAME    1
++//#define HAVE_TTYNAME    1
+ #endif  /* _MSC_VER */
+ #endif  /* ! __WATCOMC__ || __QNX__ */
+ 
+diff --git a/Modules/pwdmodule.c b/Modules/pwdmodule.c
+index 810427a229..d049397a4d 100644
+--- a/Modules/pwdmodule.c
++++ b/Modules/pwdmodule.c
+@@ -125,7 +125,12 @@ pwd_getpwuid(PyObject *module, PyObject *uidobj)
+                          "getpwuid(): uid not found");
+         return NULL;
+     }
++#ifndef __nanvix__
+     if ((p = getpwuid(uid)) == NULL) {
++#else
++    {
++        p = NULL;
++#endif
+         PyObject *uid_obj = _PyLong_FromUid(uid);
+         if (uid_obj == NULL)
+             return NULL;
+@@ -161,7 +166,12 @@ pwd_getpwnam_impl(PyObject *module, PyObject *arg)
+     /* check for embedded null bytes */
+     if (PyBytes_AsStringAndSize(bytes, &name, NULL) == -1)
+         goto out;
++#ifndef __nanvix__
+     if ((p = getpwnam(name)) == NULL) {
++#else
++    {
++        p = NULL;
++#endif
+         PyErr_Format(PyExc_KeyError,
+                      "getpwnam(): name not found: %R", arg);
+         goto out;
+diff --git a/Modules/timemodule.c b/Modules/timemodule.c
+index a963bb1dd1..2939cc1958 100644
+--- a/Modules/timemodule.c
++++ b/Modules/timemodule.c
+@@ -1463,12 +1463,18 @@ pysleep(_PyTime_t secs)
+         if (_PyTime_AsTimeval(secs, &timeout, _PyTime_ROUND_CEILING) < 0)
+             return -1;
+ 
++#ifndef __nanvix__
+         Py_BEGIN_ALLOW_THREADS
++
+         err = select(0, (fd_set *)0, (fd_set *)0, (fd_set *)0, &timeout);
+         Py_END_ALLOW_THREADS
+ 
+         if (err == 0)
+             break;
++#else
++        sleep(timeout.tv_sec);
++        break;
++#endif
+ 
+         if (errno != EINTR) {
+             PyErr_SetFromErrno(PyExc_OSError);
+diff --git a/Python/pylifecycle.c b/Python/pylifecycle.c
+index 0ebf9c7029..78150678f2 100644
+--- a/Python/pylifecycle.c
++++ b/Python/pylifecycle.c
+@@ -238,6 +238,8 @@ get_locale_encoding(void)
+     return get_codec_name(codeset);
+ #elif defined(__ANDROID__)
+     return get_codec_name("UTF-8");
++#elif defined(__nanvix__)
++    return 'utf-8';
+ #else
+     PyErr_SetNone(PyExc_NotImplementedError);
+     return NULL;
+@@ -994,6 +996,9 @@ initfsencoding(PyInterpreterState *interp)
+         Py_FileSystemDefaultEncoding = "utf-8";
+         Py_FileSystemDefaultEncodeErrors = "surrogatepass";
+     }
++#elif defined(__nanvix__)
++    Py_FileSystemDefaultEncoding = "utf-8";
++    Py_HasFileSystemDefaultEncoding = 1;
+ #else
+     if (Py_FileSystemDefaultEncoding == NULL)
+     {
+@@ -1230,6 +1235,11 @@ initstdio(void)
+     errors = _Py_StandardStreamErrors;
+     if (!encoding || !errors) {
+         pythonioencoding = Py_GETENV("PYTHONIOENCODING");
++#ifdef __nanvix__
++        if (!pythonioencoding) {
++            pythonioencoding = "UTF-8";
++        }
++#endif
+         if (pythonioencoding) {
+             char *err;
+             pythonioencoding = _PyMem_Strdup(pythonioencoding);
+diff --git a/Python/pystate.c b/Python/pystate.c
+index 71494daa47..8baf66c99e 100644
+--- a/Python/pystate.c
++++ b/Python/pystate.c
+@@ -950,6 +950,27 @@ PyGILState_Release(PyGILState_STATE oldstate)
+         PyEval_SaveThread();
+ }
+ 
++#else /* ! WITH_THREAD. */
++
++/* I dont know what to do here....... just defining to have something */
++PyThreadState *
++PyGILState_GetThisThreadState(void)
++{
++    return NULL;
++}
++
++PyGILState_STATE
++PyGILState_Ensure(void)
++{
++    return PyGILState_LOCKED;
++}
++
++void
++PyGILState_Release(PyGILState_STATE oldstate)
++{
++    ((void)oldstate);
++}
++
+ #endif /* WITH_THREAD */
+ 
+ #ifdef __cplusplus
+diff --git a/Python/pytime.c b/Python/pytime.c
+index 19fdb55b06..74336d5c29 100644
+--- a/Python/pytime.c
++++ b/Python/pytime.c
+@@ -667,6 +667,7 @@ _PyTime_GetSystemClockWithInfo(_PyTime_t *t, _Py_clock_info_t *info)
+ static int
+ pymonotonic(_PyTime_t *tp, _Py_clock_info_t *info, int raise)
+ {
++#if !defined(__nanvix__)
+ #if defined(MS_WINDOWS)
+     ULONGLONG ticks;
+     _PyTime_t t;
+@@ -760,6 +761,18 @@ pymonotonic(_PyTime_t *tp, _Py_clock_info_t *info, int raise)
+     }
+     if (_PyTime_FromTimespec(tp, &ts, raise) < 0)
+         return -1;
++#endif
++#else
++    time_t time_s;
++    time(&time_s);
++    if (info) {
++        info->monotonic = 0;
++        info->implementation = "gettimeofday()";
++        info->adjustable = 1;
++        info->resolution = 1e-6;
++    }
++    *tp = time_s * SEC_TO_NS;
++    return 0; /* __nanvix__. */
+ #endif
+     return 0;
+ }
+diff --git a/Python/random.c b/Python/random.c
+index d4747d61eb..6a762105fd 100644
+--- a/Python/random.c
++++ b/Python/random.c
+@@ -478,6 +478,10 @@ lcg_urandom(unsigned int x0, unsigned char *buffer, size_t size)
+ static int
+ pyurandom(void *buffer, Py_ssize_t size, int blocking, int raise)
+ {
++#ifdef __nanvix__
++    ssize_t i;
++#endif
++
+ #if defined(PY_GETRANDOM) || defined(PY_GETENTROPY)
+     int res;
+ #endif
+@@ -514,8 +518,15 @@ pyurandom(void *buffer, Py_ssize_t size, int blocking, int raise)
+        ENOSYS or EPERM. Fall back on reading from /dev/urandom. */
+ #endif
+ 
++#ifndef __nanvix__
+     return dev_urandom(buffer, size, raise);
++#else
++    /* Yes, the most insecure solution ever =). */
++    for (i = 0; i < size; i++)
++      ((char*)buffer)[i] = rand();
+ #endif
++
++#endif /* MS_WINDOWS */
+ }
+ 
+ /* Fill buffer with size pseudo-random bytes from the operating system random
+diff --git a/config.sub b/config.sub
+index 40ea5dfe11..cbe0b75e9d 100755
+--- a/config.sub
++++ b/config.sub
+@@ -1399,7 +1399,7 @@ case $os in
+ 	      | -aos* | -aros* | -cloudabi* | -sortix* \
+ 	      | -nindy* | -vxsim* | -vxworks* | -ebmon* | -hms* | -mvs* \
+ 	      | -clix* | -riscos* | -uniplus* | -iris* | -rtu* | -xenix* \
+-	      | -hiux* | -386bsd* | -knetbsd* | -mirbsd* | -netbsd* \
++	      | -hiux* | -386bsd* | -knetbsd* | -mirbsd* | -nanvix* | -netbsd* \
+ 	      | -bitrig* | -openbsd* | -solidbsd* | -libertybsd* \
+ 	      | -ekkobsd* | -kfreebsd* | -freebsd* | -riscix* | -lynxos* \
+ 	      | -bosx* | -nextstep* | -cxux* | -aout* | -elf* | -oabi* \
+diff --git a/configure b/configure
+index e39c16eee2..ea2593f56b 100755
+--- a/configure
++++ b/configure
+@@ -3256,6 +3256,9 @@ then
+ 	*-*-cygwin*)
+ 		ac_sys_system=Cygwin
+ 		;;
++  *-*-nanvix*)
++    ac_sys_system=Nanvix
++    ;;
+ 	*)
+ 		# for now, limit cross builds to known configurations
+ 		MACHDEP="unknown"
+@@ -3282,6 +3285,7 @@ then
+ 	cygwin*) MACHDEP="cygwin";;
+ 	darwin*) MACHDEP="darwin";;
+ 	irix646) MACHDEP="irix6";;
++  nanvix*) MACHDEP="nanvix";;
+ 	'')	MACHDEP="unknown";;
+     esac
+ fi
+@@ -3301,6 +3305,9 @@ if test "$cross_compiling" = yes; then
+ 	*-*-cygwin*)
+ 		_host_cpu=
+ 		;;
++  *-*-nanvix*)
++    _host_cpu=$host_cpu
++    ;;
+ 	*)
+ 		# for now, limit cross builds to known configurations
+ 		MACHDEP="unknown"
+@@ -9441,7 +9448,9 @@ then
+ 	CYGWIN*)
+ 		LDSHARED="gcc -shared -Wl,--enable-auto-image-base"
+ 		LDCXXSHARED="g++ -shared -Wl,--enable-auto-image-base";;
+-	*)	LDSHARED="ld";;
++	*)
++    LDSHARED="$(echo '~ Not building shared libs because I cannot support them! ~')"
++    LDCXXSHARED="$(echo '~ Not building shared libs because I cannot support them! ~')";;
+ 	esac
+ fi
+ { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LDSHARED" >&5
+@@ -11546,7 +11555,7 @@ void *x=symlink
+ _ACEOF
+ if ac_fn_c_try_compile "$LINENO"; then :
+ 
+-$as_echo "#define HAVE_SYMLINK 1" >>confdefs.h
++# $as_echo "#define HAVE_SYMLINK 1" >>confdefs.h
+ 
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+ $as_echo "yes" >&6; }
+@@ -11596,7 +11605,7 @@ void *x=fsync
+ _ACEOF
+ if ac_fn_c_try_compile "$LINENO"; then :
+ 
+-$as_echo "#define HAVE_FSYNC 1" >>confdefs.h
++# $as_echo "#define HAVE_FSYNC 1" >>confdefs.h
+ 
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+ $as_echo "yes" >&6; }
+@@ -11621,7 +11630,7 @@ void *x=fdatasync
+ _ACEOF
+ if ac_fn_c_try_compile "$LINENO"; then :
+ 
+-$as_echo "#define HAVE_FDATASYNC 1" >>confdefs.h
++# $as_echo "#define HAVE_FDATASYNC 1" >>confdefs.h
+ 
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+ $as_echo "yes" >&6; }
+diff --git a/configure.ac b/configure.ac
+index cf280506bd..bed042afeb 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -379,6 +379,9 @@ then
+ 	*-*-cygwin*)
+ 		ac_sys_system=Cygwin
+ 		;;
++	*-*-nanvix*)
++	    ac_sys_system=Nanvix
++	    ;;
+ 	*)
+ 		# for now, limit cross builds to known configurations
+ 		MACHDEP="unknown"
+@@ -405,6 +408,7 @@ then
+ 	cygwin*) MACHDEP="cygwin";;
+ 	darwin*) MACHDEP="darwin";;
+ 	irix646) MACHDEP="irix6";;
++	nanvix*) MACHDEP="nanvix";;
+ 	'')	MACHDEP="unknown";;
+     esac
+ fi
+@@ -424,6 +428,9 @@ if test "$cross_compiling" = yes; then
+ 	*-*-cygwin*)
+ 		_host_cpu=
+ 		;;
++	*-*-nanvix*)
++		_host_cpu=$host_cpu
++		;;
+ 	*)
+ 		# for now, limit cross builds to known configurations
+ 		MACHDEP="unknown"
+@@ -2638,7 +2645,9 @@ then
+ 	CYGWIN*)
+ 		LDSHARED="gcc -shared -Wl,--enable-auto-image-base"
+ 		LDCXXSHARED="g++ -shared -Wl,--enable-auto-image-base";;
+-	*)	LDSHARED="ld";;
++	*)
++		LDSHARED="$(echo '~ Not building shared libs because I cannot support them! ~')"
++		LDCXXSHARED="$(echo '~ Not building shared libs because I cannot support them! ~')";;
+ 	esac
+ fi
+ AC_MSG_RESULT($LDSHARED)
+-- 
+2.29.1
+
