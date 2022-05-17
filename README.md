@@ -27,6 +27,7 @@ but with some differences that may or not appear in the upstream, some of them:
   - PDCurses 3.9-4bc97e2
   - Nano v2.7.2
   - [Nyancat](https://github.com/klange/nyancat)
+  - Python 3.6.15
   - more coming soon
 - OR1K not currently supported¹ (checkout `#bdf4f27` for a working version)
 
