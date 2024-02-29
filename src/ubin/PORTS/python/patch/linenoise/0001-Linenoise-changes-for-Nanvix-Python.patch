@@ -1,0 +1,551 @@
+From 50587ac0cb174f0caaf7a52f977cb4aa8f4372db Mon Sep 17 00:00:00 2001
+From: Davidson Francis <davidsondfgl@gmail.com>
+Date: Thu, 2 Jun 2022 16:41:39 -0300
+Subject: [PATCH] Linenoise changes for Nanvix+Python
+
+This patch is intended to replace the default Python fgets (for when
+there is no libreadline) for Linenoise.
+
+For this, a set of changes needed to be made so that the REPL
+experience was not hampered.
+
+Nanvix changes:
+---------------
+* Modifications required for Linenoise to work on Nanvix:
+* Removal of terminal type identification
+* Removal of column/row identification: always 80x25
+* TCSAFLUSH -> TCSANOW in tcsetattr
+* Disable linenoiseBeep()
+* Change default enter key (13 -> 10)
+
+Bug Fixes:
+----------
+Linenoise hates tab: whenever a tab is pressed the behavior becomes
+quite erratic. This is because Linenoise assumes that the cursor
+position is always a direct correspondent of the number of characters
+in the buffer, which is not exactly true: a tab character ('\t') can
+make the cursor skip several characters from just one time.
+
+There are at least two solutions for this:
+a) modify all Linenoise logic to account for tab characters.
+b) convert all tabs to spaces.
+Option b) is definitely the easiest and is the one implemented here.
+
+Python changes:
+---------------
+In order to improve the Python experience: this patch also adds
+support for syntax highlighting of lines of code, via libaqua.
+
+Signed-off-by: Davidson Francis <davidsondfgl@gmail.com>
+---
+ linenoise.c | 263 +++++++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 238 insertions(+), 25 deletions(-)
+
+diff --git a/linenoise.c b/linenoise.c
+index cfe51e7..c8c43a4 100644
+--- a/linenoise.c
++++ b/linenoise.c
+@@ -103,23 +103,40 @@
+  *
+  */
+ 
++ #define _POSIX_C_SOURCE 200809L
++
+ #include <termios.h>
+ #include <unistd.h>
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <errno.h>
+ #include <string.h>
++#include <strings.h>
+ #include <stdlib.h>
+ #include <ctype.h>
+ #include <sys/stat.h>
+ #include <sys/types.h>
++#ifndef __nanvix__
+ #include <sys/ioctl.h>
++#endif
+ #include <unistd.h>
+ #include "linenoise.h"
++#include "aqua.h"
++
++#ifdef Py_BUILD_CORE
++#include "Python.h"
++#define malloc  PyMem_RawMalloc
++#define calloc  PyMem_RawCalloc
++#define realloc PyMem_RawRealloc
++#define free    PyMem_RawFree
++#define strdup  _PyMem_RawStrdup
++#endif
+ 
+ #define LINENOISE_DEFAULT_HISTORY_MAX_LEN 100
+ #define LINENOISE_MAX_LINE 4096
++#ifndef __nanvix__
+ static char *unsupported_term[] = {"dumb","cons25","emacs",NULL};
++#endif
+ static linenoiseCompletionCallback *completionCallback = NULL;
+ static linenoiseHintsCallback *hintsCallback = NULL;
+ static linenoiseFreeHintsCallback *freeHintsCallback = NULL;
+@@ -133,6 +150,10 @@ static int history_max_len = LINENOISE_DEFAULT_HISTORY_MAX_LEN;
+ static int history_len = 0;
+ static char **history = NULL;
+ 
++/* Aqua syntax highlight. */
++static int aqua_initialized = 0;
++static struct aqua_sh aqua_ctx;
++
+ /* The linenoiseState structure represents the state during line editing.
+  * We pass this state to functions implementing specific editing
+  * functionalities. */
+@@ -163,7 +184,11 @@ enum KEY_ACTION{
+ 	TAB = 9,            /* Tab */
+ 	CTRL_K = 11,        /* Ctrl+k */
+ 	CTRL_L = 12,        /* Ctrl+l */
+-	ENTER = 13,         /* Enter */
++#ifndef __nanvix__
++    ENTER = 13,         /* Enter */
++#else
++    ENTER = 10,
++#endif
+ 	CTRL_N = 14,        /* Ctrl-n */
+ 	CTRL_P = 16,        /* Ctrl-p */
+ 	CTRL_T = 20,        /* Ctrl-t */
+@@ -173,6 +198,8 @@ enum KEY_ACTION{
+ 	BACKSPACE =  127    /* Backspace */
+ };
+ 
++#define TAB_SIZE 4 /* How many spaces have 1 <tab>, max 8. */
++
+ static void linenoiseAtExit(void);
+ int linenoiseHistoryAdd(const char *line);
+ static void refreshLine(struct linenoiseState *l);
+@@ -219,12 +246,14 @@ void linenoiseSetMultiLine(int ml) {
+ /* Return true if the terminal name is in the list of terminals we know are
+  * not able to understand basic escape sequences. */
+ static int isUnsupportedTerm(void) {
++#ifndef __nanvix__
+     char *term = getenv("TERM");
+     int j;
+ 
+     if (term == NULL) return 0;
+     for (j = 0; unsupported_term[j]; j++)
+         if (!strcasecmp(term,unsupported_term[j])) return 1;
++#endif
+     return 0;
+ }
+ 
+@@ -255,7 +284,7 @@ static int enableRawMode(int fd) {
+     raw.c_cc[VMIN] = 1; raw.c_cc[VTIME] = 0; /* 1 byte, no timer */
+ 
+     /* put terminal in raw mode after flushing */
+-    if (tcsetattr(fd,TCSAFLUSH,&raw) < 0) goto fatal;
++    if (tcsetattr(fd,TCSANOW,&raw) < 0) goto fatal;
+     rawmode = 1;
+     return 0;
+ 
+@@ -270,6 +299,7 @@ static void disableRawMode(int fd) {
+         rawmode = 0;
+ }
+ 
++#ifndef __nanvix__
+ /* Use the ESC [6n escape sequence to query the horizontal cursor position
+  * and return it. On error -1 is returned, on success the position of the
+  * cursor. */
+@@ -294,10 +324,12 @@ static int getCursorPosition(int ifd, int ofd) {
+     if (sscanf(buf+2,"%d;%d",&rows,&cols) != 2) return -1;
+     return cols;
+ }
++#endif
+ 
+ /* Try to get the number of columns in the current terminal, or assume 80
+  * if it fails. */
+ static int getColumns(int ifd, int ofd) {
++#ifndef __nanvix__
+     struct winsize ws;
+ 
+     if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
+@@ -327,6 +359,7 @@ static int getColumns(int ifd, int ofd) {
+     }
+ 
+ failed:
++#endif
+     return 80;
+ }
+ 
+@@ -340,8 +373,10 @@ void linenoiseClearScreen(void) {
+ /* Beep, used for completion when there is nothing to complete or when all
+  * the choices were already shown. */
+ static void linenoiseBeep(void) {
++#ifndef __nanvix__
+     fprintf(stderr, "\x7");
+     fflush(stderr);
++#endif
+ }
+ 
+ /* ============================== Completion ================================ */
+@@ -355,6 +390,37 @@ static void freeCompletions(linenoiseCompletions *lc) {
+         free(lc->cvec);
+ }
+ 
++/* Get the address of the start of the last word typed in the line. */
++static char* getWordStart(char *line, size_t len, size_t *ret_len) {
++    char *p;
++    char *start;
++
++    start = line + len - 1;
++    for (p = start; p > line && *p != ' '; p--);
++
++    if (*p == ' ')
++        p++;
++
++    *ret_len = (size_t)(start - p + 1);
++    return p;
++}
++
++/* Update the current line with the given completion.
++ * Takes into account possible spaces and etc, so the completion is _appended_
++ * to the current line, not overwrited. */
++static void updateLine(struct linenoiseState *ls, const char *completion) {
++    char *start;
++    size_t increment, compl_len;
++
++    start      = getWordStart(ls->buf, ls->len, &increment);
++    compl_len  = strlen(completion);
++    increment  = compl_len - increment;
++
++    ls->pos += increment;
++    ls->len  = ls->pos;
++    strncpy(start, completion, ls->buflen - ls->pos);
++}
++
+ /* This is an helper function for linenoiseEdit() and is called when the
+  * user types the <tab> key in order to complete the string currently in the
+  * input.
+@@ -363,12 +429,14 @@ static void freeCompletions(linenoiseCompletions *lc) {
+  * structure as described in the structure definition. */
+ static int completeLine(struct linenoiseState *ls) {
+     linenoiseCompletions lc = { 0, NULL };
+-    int nread, nwritten;
++    int nread;
+     char c = 0;
+ 
+     completionCallback(ls->buf,&lc);
+     if (lc.len == 0) {
+         linenoiseBeep();
++        /* If there is nothing to complete, return a tab as usual. */
++        c = '\t';
+     } else {
+         size_t stop = 0, i = 0;
+ 
+@@ -376,13 +444,12 @@ static int completeLine(struct linenoiseState *ls) {
+             /* Show completion or original buffer */
+             if (i < lc.len) {
+                 struct linenoiseState saved = *ls;
+-
+-                ls->len = ls->pos = strlen(lc.cvec[i]);
+-                ls->buf = lc.cvec[i];
++                updateLine(ls, lc.cvec[i]);
+                 refreshLine(ls);
+                 ls->len = saved.len;
+                 ls->pos = saved.pos;
+                 ls->buf = saved.buf;
++                ls->buf[ls->pos] = '\0';
+             } else {
+                 refreshLine(ls);
+             }
+@@ -406,8 +473,7 @@ static int completeLine(struct linenoiseState *ls) {
+                 default:
+                     /* Update buffer and return */
+                     if (i < lc.len) {
+-                        nwritten = snprintf(ls->buf,ls->buflen,"%s",lc.cvec[i]);
+-                        ls->len = ls->pos = nwritten;
++                        updateLine(ls, lc.cvec[i]);
+                     }
+                     stop = 1;
+                     break;
+@@ -465,20 +531,49 @@ void linenoiseAddCompletion(linenoiseCompletions *lc, const char *str) {
+ struct abuf {
+     char *b;
+     int len;
++    int pos;
+ };
+ 
+ static void abInit(struct abuf *ab) {
+     ab->b = NULL;
+     ab->len = 0;
++    ab->pos = 0;
++}
++
++static void abInitSize(struct abuf *ab, int len) {
++    ab->b = calloc(len, sizeof(char));
++    ab->len = len;
++    ab->pos = 0;
+ }
+ 
+ static void abAppend(struct abuf *ab, const char *s, int len) {
+-    char *new = realloc(ab->b,ab->len+len);
++    char *new;
+ 
+-    if (new == NULL) return;
+-    memcpy(new+ab->len,s,len);
+-    ab->b = new;
+-    ab->len += len;
++    if (ab->len + len > ab->len) {
++        new = realloc(ab->b,ab->len+len);
++        if (new == NULL)
++            return;
++        ab->len += len;
++        ab->b = new;
++    }
++
++    memcpy(ab->b+ab->pos,s,len);
++    ab->pos += len;
++}
++
++static void abAppendChar(struct abuf *ab, char c) {
++    char *new;
++
++    if (ab->len + 1 > ab->len) {
++        new = realloc(ab->b,ab->len+1);
++        if (new == NULL)
++            return;
++        ab->len += 1;
++        ab->b = new;
++    }
++
++    ab->b[ab->pos] = c;
++    ab->pos += 1;
+ }
+ 
+ static void abFree(struct abuf *ab) {
+@@ -523,6 +618,7 @@ static void refreshSingleLine(struct linenoiseState *l) {
+     size_t len = l->len;
+     size_t pos = l->pos;
+     struct abuf ab;
++    char *syntax;
+ 
+     while((plen+pos) >= l->cols) {
+         buf++;
+@@ -533,6 +629,12 @@ static void refreshSingleLine(struct linenoiseState *l) {
+         len--;
+     }
+ 
++    /* Highlight current buffer. */
++    aqua_reset_state(&aqua_ctx);
++    syntax = aqua_highlight(&aqua_ctx, buf, len);
++    if (!syntax)
++        return;
++
+     abInit(&ab);
+     /* Cursor to left edge */
+     snprintf(seq,64,"\r");
+@@ -542,7 +644,7 @@ static void refreshSingleLine(struct linenoiseState *l) {
+     if (maskmode == 1) {
+         while (len--) abAppend(&ab,"*",1);
+     } else {
+-        abAppend(&ab,buf,len);
++        abAppend(&ab,syntax,strlen(syntax));
+     }
+     /* Show hits if any. */
+     refreshShowHints(&ab,l,plen);
+@@ -667,6 +769,19 @@ int linenoiseEditInsert(struct linenoiseState *l, char c) {
+             l->pos++;
+             l->len++;
+             l->buf[l->len] = '\0';
++            /*
++             * I really would like to avoid an entire refresh line
++             * here, but my syntax highlighter needs to update
++             * the entire line, not a single character
++             *
++             * (Think about highlighting a keyword:
++             *  Exceptio -> no highlight
++             *  (types 'n') -> Exception -> highlight, no only 'n'
++             * but the entire word... this requires an entire line
++             * update... unfortunately).
++             */
++            refreshLine(l);
++            #if 0
+             if ((!mlmode && l->plen+l->len < l->cols && !hintsCallback)) {
+                 /* Avoid a full update of the line in the
+                  * trivial case. */
+@@ -675,6 +790,7 @@ int linenoiseEditInsert(struct linenoiseState *l, char c) {
+             } else {
+                 refreshLine(l);
+             }
++            #endif
+         } else {
+             memmove(l->buf+l->pos+1,l->buf+l->pos,l->len-l->pos);
+             l->buf[l->pos] = c;
+@@ -758,13 +874,39 @@ void linenoiseEditDelete(struct linenoiseState *l) {
+ 
+ /* Backspace implementation. */
+ void linenoiseEditBackspace(struct linenoiseState *l) {
+-    if (l->pos > 0 && l->len > 0) {
+-        memmove(l->buf+l->pos-1,l->buf+l->pos,l->len-l->pos);
+-        l->pos--;
+-        l->len--;
+-        l->buf[l->len] = '\0';
+-        refreshLine(l);
++    size_t lines;
++    size_t i;
++
++    if (l->pos == 0 || l->len == 0)
++        return;
++
++    lines = 1;
++
++    /* Check if:
++     * - the current cursor pos is multiple of TAB_SIZE
++     * - there is only spaces before (like indentation).
++     *
++     * If so, goes back TAB_SIZE chars, as going back one level
++     * of indentation. Otherwise, erase just one char.
++     */
++    if (!(l->pos % TAB_SIZE)) {
++        for (i = 0; i < l->pos; i++)
++            if (l->buf[i] != ' ')
++                break;
++
++        if (i == l->pos)
++            lines = TAB_SIZE;
+     }
++
++    memmove(
++        l->buf + l->pos - lines,
++        l->buf + l->pos,
++        l->len - l->pos);
++
++    l->pos -= lines;
++    l->len -= lines;
++    l->buf[l->len] = '\0';
++    refreshLine(l);
+ }
+ 
+ /* Delete the previosu word, maintaining the cursor at the start of the
+@@ -829,7 +971,9 @@ static int linenoiseEdit(int stdin_fd, int stdout_fd, char *buf, size_t buflen,
+         /* Only autocomplete when the callback is set. It returns < 0 when
+          * there was an error reading from fd. Otherwise it will return the
+          * character that should be handled next. */
+-        if (c == 9 && completionCallback != NULL) {
++        if (c == 9 && completionCallback != NULL &&
++            l.pos && l.buf[l.pos - 1] != ' ') {
++
+             c = completeLine(&l);
+             /* Return on errors */
+             if (c < 0) return l.len;
+@@ -945,7 +1089,20 @@ static int linenoiseEdit(int stdin_fd, int stdout_fd, char *buf, size_t buflen,
+             }
+             break;
+         default:
+-            if (linenoiseEditInsert(&l,c)) return -1;
++            /* Linenoise really have issues with tabs:
++             *
++             * if we try to erase some line with tabs,
++             * the cursor goes wonky, since it does not
++             * account the amount of spaces the tab has.
++             *
++             * The quickest fix is just to add spaces
++             * everywhere... sorry tab users... */
++            if (c == TAB) {
++                for (int i = 0; i < TAB_SIZE; i++)
++                    if (linenoiseEditInsert(&l,' ')) return -1;
++            }
++            else
++                if (linenoiseEditInsert(&l,c)) return -1;
+             break;
+         case CTRL_U: /* Ctrl+u, delete the whole line. */
+             buf[0] = '\0';
+@@ -1065,6 +1222,12 @@ char *linenoise(const char *prompt) {
+     char buf[LINENOISE_MAX_LINE];
+     int count;
+ 
++    /* Initialize the syntax highlight. */
++    if (!aqua_initialized) {
++        aqua_init(&aqua_ctx);
++        aqua_initialized = 1;
++    }
++
+     if (!isatty(STDIN_FILENO)) {
+         /* Not a tty: read from file / pipe. In this mode we don't want any
+          * limit to the line size, so we call a function to handle that. */
+@@ -1112,10 +1275,59 @@ static void freeHistory(void) {
+ 
+ /* At exit we'll try to fix the terminal to the initial conditions. */
+ static void linenoiseAtExit(void) {
++#ifdef __nanvix__
++    linenoiseHistorySave("/home/.python_history");
++#endif
+     disableRawMode(STDIN_FILENO);
+     freeHistory();
+ }
+ 
++/* Convert all tabs to spaces.
++ *
++ * When a line with tabs is saved into the history, the refresh
++ * line method behaves incorrectly, as it assumes a tab char will
++ * not 'skip' <amount-of-chars> and then, not erase the left over
++ * characters when rewriting the line.
++ *
++ * Furthermore, the cursor position is calculated wrong, since
++ * it doesn't account how many chars the cursor have to move in
++ * order to match the 'tab length'.
++ *
++ * So the simplest solution I've found is to just convert all
++ * tabs to spaces. */
++static char *spacifyTabs(const char *line) {
++    struct abuf ab;
++    const char *p;
++    int chars;
++    int tabs;
++
++    /* Count how many tabs and chars, just to avoid realloc'ing
++     * all the time. */
++    for (p = line, tabs = 0, chars = 0; *p != '\0'; p++) {
++        if (*p == '\t')
++            tabs++;
++        else
++            chars++;
++    }
++
++    abInitSize(&ab, chars + (tabs * TAB_SIZE) + 1);
++
++    if (tabs) {
++        for (p = line; *p != '\0'; p++) {
++            if (*p == '\t')
++                abAppend(&ab, "        ", TAB_SIZE);
++            else
++                abAppendChar(&ab, *p);
++        }
++    }
++    else
++        memcpy(ab.b, line, chars);
++
++    /* No need for null terminator, as abInitSize calloc the memory
++     * for us =). */
++    return ab.b;
++}
++
+ /* This is the API call to add a new entry in the linenoise history.
+  * It uses a fixed array of char pointers that are shifted (memmoved)
+  * when the history max length is reached in order to remove the older
+@@ -1135,13 +1347,14 @@ int linenoiseHistoryAdd(const char *line) {
+         memset(history,0,(sizeof(char*)*history_max_len));
+     }
+ 
++    /* Create a new line with all tabs converted to spaces. */
++    linecopy = spacifyTabs(line);
++
+     /* Don't add duplicated lines. */
+-    if (history_len && !strcmp(history[history_len-1], line)) return 0;
++    if (history_len && !strcmp(history[history_len-1], linecopy)) return 0;
+ 
+     /* Add an heap allocated copy of the line in the history.
+      * If we reached the max length, remove the older line. */
+-    linecopy = strdup(line);
+-    if (!linecopy) return 0;
+     if (history_len == history_max_len) {
+         free(history[0]);
+         memmove(history,history+1,sizeof(char*)*(history_max_len-1));
+-- 
+2.29.1
+

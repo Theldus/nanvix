@@ -42,8 +42,6 @@
 #include <sys/types.h>
 #include <wchar.h>
 
-#if defined(_POSIX_C_SOURCE) || defined(_XOPEN_SOURCE)
-
 /**
  * @brief Gets length of a fixed-sized wide-character string.
  *
@@ -66,5 +64,3 @@ size_t wcsnlen(const wchar_t *s, size_t maxlen)
 
   return (size_t)(p - s);
 }
-
-#endif /* _POSIX_C_SOURCE || _XOPEN_SOURCE */

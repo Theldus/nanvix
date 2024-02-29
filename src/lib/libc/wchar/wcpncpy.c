@@ -63,8 +63,6 @@
 #include <_ansi.h>
 #include <wchar.h>
 
-#if defined(_POSIX_C_SOURCE) || defined(_XOPEN_SOURCE)
-
 /**
  * @brief Copies a fixed-size wide-character string, returning a pointer to its end.
  *
@@ -94,5 +92,3 @@ wchar_t *wcpncpy(wchar_t * dst, const wchar_t * src, size_t count)
 
   return ret ? ret : dst;
 }
-
-#endif /* _POSIX_C_SOURCE || _XOPEN_SOURCE */

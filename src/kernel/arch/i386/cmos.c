@@ -21,115 +21,139 @@
 #include <nanvix/hal.h>
 #include <nanvix/clock.h>
 
+/* CMOS register addresses */
+#define CMOS_REG_SEC          0x00  /* seconds register */
+#define CMOS_REG_MIN          0x02  /* minutes register */
+#define CMOS_REG_HOUR         0x04  /* hours register */
+#define CMOS_REG_DOM          0x07  /* day of month register */
+#define CMOS_REG_MON          0x08  /* month register */
+#define CMOS_REG_YEAR         0x09  /* year register */
+#define CMOS_REG_STATUS_A     0x0A  /* status register A */
+#define CMOS_REG_STATUS_B     0x0B  /* status register B */
+
+/* Macro to convert binary-coded decimal (BCD) to binary */
+#define BCD_TO_BIN(x) (((x)&0x0f) + ((x) / 16) * 10)
+
+/* Flags for CMOS register STATUS_B */
+#define BCD_FORMAT_FLAG  0x04  /* BCD time format flag */
+#define TIME_FORMAT_FLAG 0x02  /* 24-hour time format flag */
+
+/* CMOS Ports and Masks */
+#define CMOS_ADDR_PORT 0x70        /* CMOS address port. */
+#define CMOS_DATA_PORT 0x71        /* CMOS data port.    */
+#define CMOS_NMI_DISABLE_MASK 0x80 /* NMI disable mask   */
+
+/**
+ * @brief CMOS Time Structure.
+ */
+struct cmos_time
+{
+	unsigned char sec;   /**< Seconds.      */
+	unsigned char min;   /**< Minutes.      */
+	unsigned char hour;  /**< Hour.         */
+	unsigned char dom;   /**< Day of Month. */
+	unsigned char mon;   /**< Month.        */
+	unsigned short year; /**< Year.         */
+} cmos_time;
+
 /**
  * @brief Current millennium.
  */
 #define CURR_MILLENNIUM 2000
 
 /**
- * @brief CMOS Time Structure.
- */
-PRIVATE struct
-{
-	unsigned sec;  /**< Seconds.      */
-	unsigned min;  /**< Minutes.      */
-	unsigned hour; /**< Hour.         */
-	unsigned dom;  /**< Day of Month. */
-	unsigned mon;  /**< Month.        */
-	unsigned year; /**< Year.         */
-} boot_time;
-
-/**
- * @brief Read CMOS device.
- * 
+ * @brief Read a byte from the CMOS device.
+ *
  * @param addr Target address.
+ * @return The value read.
  */
-PRIVATE unsigned cmos_read(unsigned addr)
+static uint8_t cmos_read(uint8_t addr)
 {
-	/*
-	 * Disable NMI at the highest order bit.
-	 */
-	outputb(0x70, 0x80 | addr);
-	
-	return (inputb(0x71));
+	/* Disable NMI at the highest order bit of the address. */
+	outputb(CMOS_ADDR_PORT, CMOS_NMI_DISABLE_MASK | addr);
+	return inputb(CMOS_DATA_PORT);
 }
 
 /**
- * @brief Returns time in seconds since Epoch (00:00:00 UTC, 1st Jan,1970) till
- *        bootup.
+ * @brief Convert CMOS time to Unix timestamp.
  *
  * @NOTE  Since register 0x09 gives only last 2 digits of the year, it's our
  *        responsibility to add it with right offset.
  *
+ * @param time The CMOS time to convert.
+ * @return The Unix timestamp.
  */
-PRIVATE signed cmos_gettime(void)
+static int32_t cmos_to_unix_time(void)
 {
-	/* Local variable declarations */
-	int yy  = CURR_MILLENNIUM + boot_time.year;
-	int mm  = boot_time.mon;
-	int dd  = boot_time.dom;
-	int hh  = boot_time.hour;
-	int min = boot_time.min;
-	int ss  = boot_time.sec;
+	int year   = CURR_MILLENNIUM + cmos_time.year;
+	int month  = cmos_time.mon;
+	int day    = cmos_time.dom;
+	int hour   = cmos_time.hour;
+	int minute = cmos_time.min;
+	int second = cmos_time.sec;
 
-	int era = 0;		/* Era is a 400 yr period 	*/
-	int yoe = 0;		/* Year of era [0, 399]		*/
-	int doy = 0;		/* Day of year [0, 365]		*/
-	int doe = 0;		/* Day of era  [0, 146096]	*/
-	int num_days = 0;	/* # of days since Epoch	*/
-	int num_secs = 0;	/* # of clock-ticks since Epoch	*/
+	int era      = 0; /* Era is a 400 yr period  */
+	int yoe      = 0; /* Year of era [0, 399]    */
+	int doy      = 0; /* Day of year [0, 365]    */
+	int doe      = 0; /* Day of era  [0, 146096] */
+	int num_days = 0; /* # of days since Epoch   */
+	int num_secs = 0; /* # of clock-ticks since Epoch */
 
-	yy -= mm <= 2;
-	era = (yy >= 0 ? yy : yy - 399) / 400;
-	yoe = (yy - era * 400);
-	doy = (153 * (mm + (mm > 2 ? -3 : 9)) + 2) / 5 + dd - 1;
+	/* Subtract 1 from year if month is January or February */
+	year -= month <= 2;
+	/* Determine the Gregorian era based on year */
+	era = (year >= 0 ? year : year - 399) / 400;
+	/* Determine the year of era */
+	yoe = (year - era * 400);
+	/* Determine the day of year (1-365) */
+	doy = (153 * (month + (month > 2 ? -3 : 9)) + 2) / 5 + day - 1;
+	/* Determine the day of era */
 	doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+	/* Determine the number of days since 1/1/1970 */
 	num_days = era * 146097 + doe - 719468;
-	num_secs = (num_days * 86400) + (hh * 3600) + (min * 60) + ss;
+	/* Determine the total number of seconds */
+	num_secs = (num_days * 86400) + (hour * 3600) + (minute * 60) + second;
 
 	return num_secs;
 }
 
 /**
- * @brief Initializes the CMOS device.
+ * @brief Read the current time from the CMOS device and return it as a Unix
+ *        timestamp.
+ *
+ * @return The current Unix timestamp.
  */
 PUBLIC void cmos_init(void)
 {
-	unsigned int registerB;
+	uint8_t register_b;
 
-	/*
-	 * Repeatedly read the register values and store them into
-	 * global cmos structure till you find duplicate values.
-	 */
+	/* Read the time from the CMOS device. */
 	do
 	{
-		boot_time.sec  = cmos_read(0x00);
-		boot_time.min  = cmos_read(0x02);
-		boot_time.hour = cmos_read(0x04);
-		boot_time.dom  = cmos_read(0x07);
-		boot_time.mon  = cmos_read(0x08);
-		boot_time.year = cmos_read(0x09);
-	} while (boot_time.sec != cmos_read(0));
+		cmos_time.sec  = cmos_read(CMOS_REG_SEC);
+		cmos_time.min  = cmos_read(CMOS_REG_MIN);
+		cmos_time.hour = cmos_read(CMOS_REG_HOUR);
+		cmos_time.dom  = cmos_read(CMOS_REG_DOM);
+		cmos_time.mon  = cmos_read(CMOS_REG_MON);
+		cmos_time.year = cmos_read(CMOS_REG_YEAR);
+	} while (cmos_time.sec != cmos_read(CMOS_REG_SEC));
 
-	/* Read output format information from CMOS registers. */
-	registerB = cmos_read(0x0B);
-
-	/* If output is in BCD format, convert it to binary. */
-	if (!(registerB & 0x04))
+	register_b = cmos_read(CMOS_REG_STATUS_B);
+	if (!(register_b & BCD_FORMAT_FLAG))
 	{
-		boot_time.sec  = (boot_time.sec & 0x0f) + ((boot_time.sec/16)*10);
-		boot_time.min  = (boot_time.min & 0x0f) + ((boot_time.min/16)*10);
-		boot_time.hour = ((boot_time.hour & 0x0f) +
-							(((boot_time.hour & 0x70)/16)*10)) |
-							(boot_time.hour & 0x80);
-		boot_time.dom  = (boot_time.dom & 0x0f) + ((boot_time.dom/16)*10);
-		boot_time.mon  = (boot_time.mon & 0x0f) + ((boot_time.mon/16)*10);
-		boot_time.year = (boot_time.year & 0x0f) + ((boot_time.year/16)*10);
+		/* Convert BCD values to binary. */
+		cmos_time.sec  = BCD_TO_BIN(cmos_time.sec);
+		cmos_time.min  = BCD_TO_BIN(cmos_time.min);
+		cmos_time.hour = BCD_TO_BIN(cmos_time.hour & 0x7f) | (cmos_time.hour & 0x80);
+		cmos_time.dom  = BCD_TO_BIN(cmos_time.dom);
+		cmos_time.mon  = BCD_TO_BIN(cmos_time.mon);
+		cmos_time.year = BCD_TO_BIN(cmos_time.year);
 	}
 
-	/* Convert 12 hr clock to 24 hr clock if necessary. */
-	if (!(registerB & 0x02) && (boot_time.hour & 0x80))
-		boot_time.hour = ((boot_time.hour & 0x7f) + 12)%24;
-		
-	startup_time = cmos_gettime();
+	/* Adjust hour if 12-hour format. */
+	if (!(register_b & TIME_FORMAT_FLAG) && (cmos_time.hour & 0x80))
+		cmos_time.hour = ((cmos_time.hour & 0x7f) + 12) % 24;
+
+	startup_time = cmos_to_unix_time();
 }
+

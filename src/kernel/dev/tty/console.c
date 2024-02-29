@@ -248,7 +248,7 @@ PRIVATE void ansi_cuf(void)
 		times = 1;
 
 	/* Tries to move forward. */
-	if (cursor.x + times >= VIDEO_WIDTH-1)
+	if (cursor.x + times <= VIDEO_WIDTH-1)
 		cursor.x += times;
 	else
 		cursor.x = VIDEO_WIDTH-1;
