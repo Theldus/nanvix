@@ -208,7 +208,6 @@
 	extern int wprintf(const wchar_t *, ...);
 	extern int wscanf(const wchar_t *, ...);
 
-#if defined(_POSIX_C_SOURCE) || defined(_XOPEN_SOURCE)
 	extern size_t mbsnrtowcs(wchar_t *, const char **, size_t, 
 		size_t, mbstate_t *);
 	extern __FILE *open_wmemstream(wchar_t **, size_t *);
@@ -220,12 +219,9 @@
 	extern size_t wcsnlen(const wchar_t *, size_t);
 	extern size_t wcsnrtombs(char *, const wchar_t **, size_t, 
 		size_t, mbstate_t *);
-#endif
 
-#ifdef _XOPEN_SOURCE
 	extern int wcswidth(const wchar_t *, size_t);
 	extern int wcwidth(wchar_t);
-#endif
 
 	/* Newlib needs to those non-standard functions. */
 	extern size_t wcslcpy(wchar_t *, const wchar_t *, size_t);

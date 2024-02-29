@@ -64,8 +64,6 @@
 #include <stdlib.h>
 #include <wchar.h>
 
-#if defined(_POSIX_C_SOURCE) || defined(_XOPEN_SOURCE)
-
 wchar_t *_wcsdup_r(struct _reent *p, const wchar_t *str)
 {
   size_t len = wcslen (str) + 1;
@@ -96,4 +94,3 @@ wchar_t *wcsdup(const wchar_t *str)
 }
 
 #endif /* !_REENT_ONLY */
-#endif /* _POSIX_C_SOURCE || _XOPEN_SOURCE */

@@ -134,8 +134,6 @@ size_t _wcsnrtombs_r(struct _reent *r, char *dst, const wchar_t **src,
 
 #ifndef _REENT_ONLY
 
-#if defined(_POSIX_C_SOURCE) || defined(_XOPEN_SOURCE)
-
 /**
  * @brief Converts a wide-character string to a character string (restartable);
  *
@@ -151,5 +149,4 @@ size_t wcsnrtombs(char * dst, const wchar_t ** src, size_t nwc,
   return _wcsnrtombs_r (_REENT, dst, src, nwc, len, ps);
 }
 
-#endif /* _POSIX_C_SOURCE || _XOPEN_SOURCE */
 #endif /* !_REENT_ONLY */

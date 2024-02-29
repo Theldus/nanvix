@@ -1,0 +1,178 @@
+From dcc38f940b1c0cb54fe459469bc76e3f3848f50f Mon Sep 17 00:00:00 2001
+From: Davidson Francis <davidsondfgl@gmail.com>
+Date: Thu, 2 Jun 2022 03:03:51 -0300
+Subject: [PATCH] Replace fgets() to linenoise
+
+Signed-off-by: Davidson Francis <davidsondfgl@gmail.com>
+---
+ Makefile.pre.in     |   2 +-
+ Parser/myreadline.c | 109 ++++++++++++++++++++++++++++----------------
+ 2 files changed, 70 insertions(+), 41 deletions(-)
+
+diff --git a/Makefile.pre.in b/Makefile.pre.in
+index d15d93509d..706a706f8d 100644
+--- a/Makefile.pre.in
++++ b/Makefile.pre.in
+@@ -299,7 +299,7 @@ POBJS=		\
+ 		Parser/grammar.o \
+ 		Parser/pgen.o
+ 
+-PARSER_OBJS=	$(POBJS) Parser/myreadline.o Parser/parsetok.o Parser/tokenizer.o
++PARSER_OBJS=	$(POBJS) Parser/myreadline.o Parser/linenoise.o Parser/aqua.o Parser/parsetok.o Parser/tokenizer.o
+ 
+ PGOBJS=		\
+ 		Objects/obmalloc.o \
+diff --git a/Parser/myreadline.c b/Parser/myreadline.c
+index 34a6f8bf5d..38f7e9fbb0 100644
+--- a/Parser/myreadline.c
++++ b/Parser/myreadline.c
+@@ -15,6 +15,7 @@
+ #include "windows.h"
+ #endif /* MS_WINDOWS */
+ 
++#include "linenoise.h"
+ 
+ PyThreadState* _PyOS_ReadlineTState;
+ 
+@@ -215,6 +216,46 @@ exit:
+ 
+ #endif
+ 
++/* Naive & dumb autocomplete for linenoise
++ *
++ * Obs: I wasn't sure if such a simple implementation wouldn't be
++ * too stupid, however, that's exactly the way Python does it.
++ *
++ * See: cpython/Lib/rlcompleter.py, function 'global_matches'.
++ */
++static void auto_complete(const char *buf, linenoiseCompletions *lc) {
++
++    size_t i;
++    size_t len;
++    const char *p;
++
++    /* Skip all white-spaces. */
++    len = strlen(buf);
++    for (p = buf + len - 1; p > buf && *p != ' '; p--);
++
++    if (*p == ' ')
++        p++;
++
++    static const char* const py_kws[] = {
++        /* Keywords. */
++        "False",    "None",    "True",     "and ",      "as ",
++        "assert ",  "break",   "class ",   "continue",  "def ",
++        "del ",     "elif ",   "else",     "except ",   "finally:",
++        "for ",     "from ",   "global ",  "if ",       "import ",
++        "in ",      "is ",     "lambda ",  "nonlocal ", "not ",
++        "or ",      "pass",    "raise ",   "return ",   "try:",
++        "while ",   "with ",   "yield ",
++        /* Common imports. */
++        "os ",      "sys ",     "math ",
++        /* Common functions. */
++        "print(",   "open("
++    };
++
++    len = strlen(p);
++    for (i = 0; i < sizeof(py_kws)/sizeof(py_kws[0]); i++)
++        if (!strncmp(p, py_kws[i], len))
++            linenoiseAddCompletion(lc, py_kws[i]);
++}
+ 
+ /* Readline implementation using fgets() */
+ 
+@@ -268,56 +309,40 @@ PyOS_StdioReadline(FILE *sys_stdin, FILE *sys_stdout, const char *prompt)
+     }
+ #endif
+ 
+-    n = 100;
+-    p = (char *)PyMem_RawMalloc(n);
+-    if (p == NULL) {
+-        PyErr_NoMemory();
+-        return NULL;
+-    }
++#ifndef MS_WINDOWS
+ 
+-    fflush(sys_stdout);
+-    if (prompt)
+-        fprintf(stderr, "%s", prompt);
+-    fflush(stderr);
++read:
++    errno = 0;
++    p = linenoise(prompt);
+ 
+-    switch (my_fgets(p, (int)n, sys_stdin)) {
+-    case 0: /* Normal case */
+-        break;
+-    case 1: /* Interrupt */
+-        PyMem_RawFree(p);
+-        return NULL;
+-    case -1: /* EOF */
+-    case -2: /* Error */
+-    default: /* Shouldn't happen */
+-        *p = '\0';
+-        break;
+-    }
+-    n = strlen(p);
+-    while (n > 0 && p[n-1] != '\n') {
+-        size_t incr = n+2;
+-        if (incr > INT_MAX) {
+-            PyMem_RawFree(p);
+-            PyErr_SetString(PyExc_OverflowError, "input line too long");
+-            return NULL;
++    if (p == NULL) {
++        if (errno == EAGAIN) { /* Ctrl-C .*/
++            fprintf(stderr, "KeyboardInterrupt\n");
++            errno = 0;
++            goto read;
+         }
+-        pr = (char *)PyMem_RawRealloc(p, n + incr);
+-        if (pr == NULL) {
+-            PyMem_RawFree(p);
+-            PyErr_NoMemory();
+-            return NULL;
++        else {
++            p = PyMem_RawMalloc(sizeof(char));
++            p[0] = '\0';
++            return p;
+         }
+-        p = pr;
+-        if (my_fgets(p+n, (int)incr, sys_stdin) != 0)
+-            break;
+-        n += strlen(p+n);
+     }
+-    pr = (char *)PyMem_RawRealloc(p, n+1);
++    else
++        linenoiseHistoryAdd(p);
++
++    n = strlen(p) + 2;
++    pr = (char *)PyMem_RawRealloc(p, n);
+     if (pr == NULL) {
+         PyMem_RawFree(p);
+         PyErr_NoMemory();
+         return NULL;
+     }
+-    return pr;
++    p = pr;
++    strcat(p, "\n");
++
++    return p;
++
++#endif
+ }
+ 
+ 
+@@ -346,6 +371,10 @@ PyOS_Readline(FILE *sys_stdin, FILE *sys_stdout, const char *prompt)
+ 
+     if (PyOS_ReadlineFunctionPointer == NULL) {
+         PyOS_ReadlineFunctionPointer = PyOS_StdioReadline;
++        linenoiseSetCompletionCallback(auto_complete);
++#ifdef __nanvix__
++        linenoiseHistoryLoad("/home/.python_history");
++#endif
+     }
+ 
+ #ifdef WITH_THREAD
+-- 
+2.29.1
+

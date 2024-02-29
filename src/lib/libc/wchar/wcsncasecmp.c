@@ -63,8 +63,6 @@
 #include <wchar.h>
 #include <wctype.h>
 
-#if defined(_POSIX_C_SOURCE) || defined(_XOPEN_SOURCE)
-
 /**
  * @brief Case-insensitive wide-character string comparison.
  *
@@ -92,5 +90,3 @@ int wcsncasecmp(const wchar_t *s1, const wchar_t *s2, size_t n)
 
   return towlower(*s1) - towlower(*s2);
 }
-
-#endif /* _POSIX_C_SOURCE || _XOPEN_SOURCE */

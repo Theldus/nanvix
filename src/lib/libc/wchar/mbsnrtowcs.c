@@ -128,8 +128,6 @@ size_t _mbsnrtowcs_r(struct _reent *r, wchar_t *dst, const char **src, size_t nm
 
 #ifndef _REENT_ONLY
 
-#if defined(_POSIX_C_SOURCE) || defined(_XOPEN_SOURCE)
-
 /**
  * @brief Converts a character string to a wide-character string (restartable).
  *
@@ -152,5 +150,4 @@ size_t mbsnrtowcs(wchar_t * dst, const char ** src, size_t nms,
   return _mbsnrtowcs_r (_REENT, dst, src, nms, len, ps);
 }
 
-#endif /* _POSIX_C_SOURCE || _XOPEN_SOURCE */
 #endif /* !_REENT_ONLY */

@@ -35,7 +35,8 @@ export PREFIX="$CURDIR/binaries"
 
 ## Create folders
 mkdir -p "$CURDIR"/src/prefix_host
-mkdir -p "$CURDIR"/binaries/{bin, home}
+mkdir -p "$CURDIR"/binaries/bin
+mkdir -p "$CURDIR"/binaries/home
 
 cd "$SRCDIR/"
 
@@ -56,6 +57,11 @@ extract () {
 	step "Applying patches..."
 	cd Python-$VERSION/
 	patch -p1 < ../../patch/0001-PATCH-Python-Port.patch
+	patch -p1 < ../../patch/0002-Replace-fgets-to-linenoise.patch
+	cp ../../patch/linenoise/linenoise.c Parser/
+	cp ../../patch/linenoise/linenoise.h Parser/
+	cp ../../patch/linenoise/aqua.c Parser/
+	cp ../../patch/linenoise/aqua.h Parser/
 }
 
 download() {
@@ -131,13 +137,12 @@ if [ -d "Python-$VERSION" ]; then
 	step "  source already exists, skipping download..."
 else
 	download
-	extract
 fi
 
 step "Checking if host Python is present..."
 
 if [ -f "$SRCDIR/prefix_host/bin/python3.6" ]; then
-	
+
 	step "  Yes, exists"
 	check_python_host
 
