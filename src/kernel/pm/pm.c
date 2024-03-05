@@ -50,12 +50,12 @@ PUBLIC char idle_kstack[KSTACK_SIZE];
 PUBLIC struct process proctab[PROC_MAX];
 
 /**
- * @brief Current running process. 
+ * @brief Current running process.
  */
 PUBLIC struct process *curr_proc = IDLE;
 
 /**
- * @brief Last running process. 
+ * @brief Last running process.
  */
 PUBLIC struct process *last_proc = IDLE;
 
@@ -83,15 +83,15 @@ PUBLIC struct inode *semdirectory;
  * @brief Initializes the process management system.
  */
 PUBLIC void pm_init(void)
-{	
+{
 	struct process *p;
-	
+
 	/* Initialize the process table. */
 	for (p = FIRST_PROC; p <= LAST_PROC; p++)
 		p->flags = 0, p->state = PROC_DEAD;
-	
+
 	kprintf("pm: handcrafting idle process");
-		
+
 	/* Handcraft init process. */
 	IDLE->cr3 = (dword_t)idle_pgdir;
 	IDLE->intlvl = 1;
@@ -110,7 +110,7 @@ PUBLIC void pm_init(void)
 	for (int i = 0; i < OPEN_MAX; i++)
 		IDLE->ofiles[i] = NULL;
 	IDLE->close = 0;
-	IDLE->umask = S_IXUSR | S_IWGRP | S_IXGRP | S_IWOTH | S_IXOTH;
+	IDLE->umask = S_IWGRP | S_IWOTH; /* i.e., 0755 by default. */
 	IDLE->tty = NULL_DEV;
 	IDLE->status = 0;
 	IDLE->nchildren = 0;
@@ -135,7 +135,7 @@ PUBLIC void pm_init(void)
 	IDLE->alarm = 0;
 	IDLE->next = NULL;
 	IDLE->chain = NULL;
-	
+
 	nprocs++;
 
 	/* Initializing semaphore table */
