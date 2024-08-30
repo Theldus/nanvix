@@ -1,7 +1,11 @@
+# Nanvix monolithic
+Nanvix is a 32-bit Unix-like operating system designed to be simple, lightweight,
+yet fully featured, and capable of running a variety of modern software.
+
 ## A BIT OF HISTORY 
 [![License: GPLv3](https://img.shields.io/badge/License-GPLv3-orange.svg)](https://opensource.org/licenses/gpl-3-0)
 
-Nanvix originated around 2013 as a graduation project by Pedro H. Penna, with 
+Nanvix originated around 2011 as a graduation project by Pedro H. Penna, with 
 the aim of becoming a didactic operating system to be used as supplementary 
 material in Operating Systems courses. It succeeded remarkably well: a system 
 that was simple yet modern, and much easier to understand than Minix.
